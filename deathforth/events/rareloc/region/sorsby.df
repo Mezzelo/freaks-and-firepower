@@ -1,0 +1,138 @@
+"../deathforth/rooms/bigstore.txt" $load-rooms
+"../deathforth/rooms/restroom.txt" $add-rooms
+
+: #bookpile
+	for book scatter next
+;
+
+: bookhere randombook scatter ;
+: storage 5 8 rnd #bookpile ;
+: rest 2 4 rnd #bookpile ;
+
+cyoa{
+
+cyoa-choice: ainsley-recruit
+	cchar to recruitee
+	ricon
+	($ "Somehow, " .. pname .. " manages to convince him to join.
+	" .. "Canada's alright. I guess I can finally escape the cops there." pbold $) cyoa-text! goodfx
+	recruit-yesno
+;
+
+cyoa-bridge: ainsley-coolit
+	cchar to recruitee
+	ricon
+	cool-it-7 if
+		($ "Somehow, " .. pname .. " manages to not be immediately murdered. In fact, the convict responds positively to this.
+		He teaches " .. pname .. " the art of being a fat bastard, and also wishes to join your party!
+		" .. "My name's Ainsley, but you can call me 'Choc Ice'. I make a mean sandwich!" pbold $) cyoa-text!
+		pchar .morale2+ pchar .vitality++ pchar .strength++ goodfx cooled-it
+		recruit-yesno
+	else cool-it++
+		($ "The convict's face immediately contorts full of rage. He sends his fat, meaty first straight through " .. pname .. "'s face!" $) cyoa-text!
+		pchar bitefx .kill badfx
+		($ pname .. " is " .. "KILLED!" fbold $) +crtext
+		team-count 0 > if
+			($ Thegroup .. " flees the book store in terror!" $) +crtext
+			quitmission
+		then
+	then
+;
+
+cyoa: npc-sorsby
+	interactee .character@ choosechar cicon
+	"Fat Bastard" cyoa-title!
+	region.zombie_basespawn@ 0 > if
+		($ "If it wasn't already evident, the convict is busy murdering zombies.
+		Maybe try again once all of the zombies are gone." $) cyoa-text!
+	else
+		0 nearest .character@ .party!
+		($ "With all the zombies dead, the convict has taken to reading a book.
+		He gives you the kind of glare you don't want to recieve from someone in a prison jumpsuit." $) cyoa-text!
+		choice( "Ask him to join you" )choice: ainsley-recruit
+		most-grating if 
+			charchoice( " tells him to COOL IT" fcoolit )choice: ainsley-coolit
+		then
+		choice( "Leave him alone" )choice
+		clear-cyoa 
+	then
+;
+
+}
+
+: .sorsbify args( char )
+	"Sorsby" <- char .name!
+	109 <- char .specialtype!
+	0 <- char .female!
+	6 <- char .strength! 1 <- char .fitness! 2 <- char .shooting! 0 <- char .medical! 0 <- char .mechanical!
+	1 <- char .composure! 2 <- char .loyalty! 0 <- char .wits! 1 <- char .attitude!
+	0.88 <- char .ai.threat_threshold!
+	0.1 <- char .ai.wander_chance!
+	"Max sec." <- char .perk! 
+	"Manhole cover thief" <- char .trait! 
+	($ "is an average dancer who held up a Domino's with a chorizo and has kissed over 3 women." $) <- char .job!
+	WEAPON_NIGHTSTICK <- char .weapona!
+	<- char cyoa{ ' npc-sorsby cyoa! }
+	drop
+;
+
+: ainsley
+	new-npc 0 lt .leaveok! lt .character@ .sorsbify
+;
+
+			
+location
+
+	: groceryloot
+		10 to stockchance
+		KLroll
+	;
+	
+		tags: yallmart
+		max-rooms: 4
+		entry-tags: nocart
+		
+		script: set-theme-bookstore
+
+		post-script:
+	
+		room-choice: nocart
+			room-weight: 10
+			room-count: 1
+			room-script: ndx
+			room-post-script: storage ainsley bookhere
+			filter-only
+
+		room-choice: restroom
+			room-weight: 10
+			room-count: 1
+			room-script: nad floor-bath		
+			room-post-script: rest
+			
+		room-choice: storage
+			room-weight: 10
+			room-count: 2
+			room-script: nad
+			room-post-script: storage groceryloot
+			
+regiondef{
+
+	: runme
+		mission{ siege-start 50 bottom-spawn }
+		5sdiff %zombs 
+		zombiecops
+	;
+
+	 region: yallmart
+		w: 26
+		h: 30
+		script: timeofday o'clock
+
+		inside no-rest
+		
+		loc-choice: yallmart
+			loc-weight: 99
+			loc-count: 1
+
+		post-script: runme
+}

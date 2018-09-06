@@ -1,0 +1,54 @@
+	: BOB-oneline1 "I wonder what it's like back home." ;
+	: BOB-oneline2 "I really chose the wrong place to settle down in..." ;
+	: BOB-oneline3 "Wish we could get a bit more rain." ;
+	: BOB-oneline4 "Guess it's better than living in a mirror." ;
+	: BOB-oneline5 "Can we stop by the beach? I miss the water." ;
+
+	deck-new
+		card: BOB-oneline1
+		card: BOB-oneline2
+		card: BOB-oneline3
+		card: BOB-oneline4
+		card: BOB-oneline5
+	constant BOB-ONELINERS
+	BOB-ONELINERS var bob-oneliners
+	BOB-ONELINERS shuffles to bob-oneliners
+
+	: BOB-emote1 " hums a melancholy tune to herself." ;
+	: BOB-emote2 " twirls a drop of water around her fingers." ;
+	: BOB-emote3 " flips through a newspaper." ;
+	: BOB-emote4 " stretches her arms out the window." ;
+	: BOB-emote5 " naps on top of the car." ;
+
+	deck-new
+		card: BOB-emote1
+		card: BOB-emote2
+		card: BOB-emote3
+		card: BOB-emote4
+		card: BOB-emote5
+	constant BOB-EMOTES
+	BOB-EMOTES var bob-emotes
+	BOB-EMOTES shuffles to bob-emotes	
+	
+: bob-oneliner
+	bob-oneliners depths 0= if BOB-ONELINERS shuffles to bob-oneliners then
+	blurbslot 0= if
+		drawcard blurbsay
+	then
+;
+
+: bob-emote
+	bob-emotes depths 0= if BOB-EMOTES shuffles to bob-emotes then
+	blurbslot 0= if
+		qmsg ($ me .name@ .. bob-emotes drawcard $) txt
+	then
+;
+
+	deck-new
+	9 cards: ...say
+	5 cards: bob-emote
+	5 cards: bob-oneliner
+
+	constant BLURB-BOB-DECK
+	BLURB-BOB-DECK var blurb-bob-deck
+	BLURB-BOB-DECK shuffles to blurb-bob-deck

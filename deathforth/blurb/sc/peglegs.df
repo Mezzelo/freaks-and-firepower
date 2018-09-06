@@ -1,0 +1,59 @@
+	: PEGLEGS-oneline1 ($ 0x dd $chr .. " Yo, ho, ho, and a root-beer for me. " .. 0x dd $chr $) ;
+	: PEGLEGS-oneline2 "Yaargh, this journey be rough!" ;
+	: PEGLEGS-oneline3 "See any merchant ships to rob?" ;
+	: PEGLEGS-oneline4 "Yaargh, I need me some zombies to slay, aargh!" ;
+	: PEGLEGS-oneline5 ($ 0x dd $chr rainbold .. " Shake it like a sword with a dead guy on it " rainbold .. 0x dd $chr rainbold $) ;
+
+	deck-new
+		card: PEGLEGS-oneline1
+		card: PEGLEGS-oneline2
+		card: PEGLEGS-oneline3
+		card: PEGLEGS-oneline4
+		card: PEGLEGS-oneline5
+	constant PEGLEGS-ONELINERS
+	PEGLEGS-ONELINERS var peglegs-oneliners
+	PEGLEGS-ONELINERS shuffles to peglegs-oneliners
+
+	: PEGLEGS-emote1 " polishes his cutlass." ;
+	: PEGLEGS-emote2 " applies varnish to his legs." ;
+	: PEGLEGS-emote3 " begins binging on soda." ;
+	: PEGLEGS-emote4 " swings his cutlass out the window." ;
+	: PEGLEGS-emote5 " starts singing a merry song." ;
+	: PEGLEGS-emote6 " combs his fingers through his beard." ;
+	: PEGLEGS-emote7 " cleans out his flintlock." ;
+	: PEGLEGS-emote8 " massages his sore knees." ;
+
+	deck-new
+		card: PEGLEGS-emote1
+		card: PEGLEGS-emote2
+		card: PEGLEGS-emote3
+		card: PEGLEGS-emote4
+		card: PEGLEGS-emote5
+		card: PEGLEGS-emote6
+		card: PEGLEGS-emote7
+		card: PEGLEGS-emote8
+	constant PEGLEGS-EMOTES
+	PEGLEGS-EMOTES var peglegs-emotes
+	PEGLEGS-EMOTES shuffles to peglegs-emotes	
+	
+: peglegs-oneliner
+	peglegs-oneliners depths 0= if PEGLEGS-ONELINERS shuffles to peglegs-oneliners then
+	blurbslot 0= if
+		drawcard blurbsay
+	then
+;
+
+: peglegs-emote
+	peglegs-emotes depths 0= if PEGLEGS-EMOTES shuffles to peglegs-emotes then
+	blurbslot 0= if
+		qmsg ($ me .name@ .. peglegs-emotes drawcard $) txt
+	then
+;
+
+	deck-new
+	8 cards: peglegs-emote
+	5 cards: peglegs-oneliner
+
+	constant BLURB-PEGLEGS-DECK
+	BLURB-PEGLEGS-DECK var blurb-peglegs-deck
+	BLURB-PEGLEGS-DECK shuffles to blurb-peglegs-deck

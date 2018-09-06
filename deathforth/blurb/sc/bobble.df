@@ -1,0 +1,160 @@
+	: BOBBLE-oneline1 "We'll make it to Canada soon!" ;
+	: BOBBLE-oneline2 "I can't wait to meet more people!" ;
+	: BOBBLE-oneline3 "These zombies are no fun. Let's give them some color!" ;
+	: BOBBLE-oneline4 "Woomy!" ;
+	: BOBBLE-oneline5 "Wahey!" ;
+	
+: bobble-appreciate
+	blurbslot 0= if 
+		solo if 
+			($ "Even if I don't make it, this trip was still fun!" fbold $) blurbsay
+		then;
+		($ "It doesn't matter if we don't make it. This journey was fun!" fbold $) blurbsay
+	else
+		blurbslot 2 < if
+		2nd-char choosechar
+			cattitude- if
+				($ "Are you nuts? What's wrong with you!?" $) blurbsay
+				STAT_MORALE 1st-char .stat--
+			else
+				($ "Hey, maybe you're right." $) blurbsay
+				STAT_MORALE 2nd-char .stat++
+			then 
+		then
+	then
+;
+
+: bobble-anticipate
+	blurbslot 0= if 
+		solo if 
+			($ "I can't wait until I make it to Canada!" fbold $) blurbsay
+		then;
+		($ "I can't wait until we get to Canada!" fbold $) blurbsay
+	else
+		blurbslot 2 < if
+		2nd-char choosechar
+			cattitude- if
+				($ "Nobody cares, shut up already!" $) blurbsay
+				STAT_MORALE 1st-char .stat--
+			else
+				($ "We'll be there in no time." $) blurbsay
+				STAT_MORALE 1st-char .stat++ STAT_MORALE 2nd-char .stat++
+			then 
+		then
+	then
+;
+
+: bobble-encourage
+	blurbslot 0= if 
+		solo if 
+			($ "This'll get better soon!" fbold $) blurbsay
+		then;
+		($ "Don't worry, things will get better soon!" fbold $) blurbsay
+	else
+		blurbslot 2 < if
+		2nd-char choosechar
+			cattitude- if
+				($ "You're not helping, stop being so annoying!" $) blurbsay
+				STAT_MORALE 1st-char .stat--
+			else
+				($ "I guess it's only up from here." $) blurbsay
+				STAT_MORALE 1st-char .stat++ STAT_MORALE 2nd-char .stat++
+			then 
+		then
+	then
+;
+
+
+: bobble-sing
+	blurbslot 0= if 
+		($ "starts singing obnoxiously loud." $) blurbdo 
+	else
+		blurbslot 2 < if
+		2nd-char choosechar
+			cattitude+ if
+				($ "joins in on the fun!" $) blurbdo
+				STAT_MORALE 1st-char .stat++ STAT_MORALE 2nd-char .stat++ 
+			else
+				($ "Shut up, that's so annoying!" $) blurbsay
+				STAT_MORALE 1st-char .stat--
+			then 
+		then
+	then
+;
+
+: bobble-splash
+	2nd-char choosechar
+	blurbslot 0= if 
+		solo if 
+			($ "sings softly to herself." $) blurbdo 
+		then;
+		($ "splashes some ink onto " ..  2nd-char .name@ .. "." $) blurbdo
+	else
+		blurbslot 2 < if
+			cattitude+ if
+				($ "splashes her back!" $) blurbdo
+				STAT_MORALE 1st-char .stat++ STAT_MORALE 2nd-char .stat++ 
+			else
+				($ "Gross, how will I clean this out?!" $) blurbsay
+				STAT_MORALE 1st-char .stat--
+			then 
+		then
+	then
+;
+
+	deck-new
+		card: BOBBLE-oneline1
+		card: BOBBLE-oneline2
+		card: BOBBLE-oneline3
+		card: BOBBLE-oneline4
+		card: BOBBLE-oneline5
+	constant BOBBLE-ONELINERS
+	BOBBLE-ONELINERS var bobble-oneliners
+	BOBBLE-ONELINERS shuffles to bobble-oneliners
+
+	: BOBBLE-emote1 " washes her hat in her slosher." ;
+	: BOBBLE-emote2 " refills the ink in her slosher." ;
+	: BOBBLE-emote3 " hums out a song." ;
+	: BOBBLE-emote4 " munches on some sushi from her hoodie." ;
+	: BOBBLE-emote5 " snuggles with a squid plushie." ;
+	: BOBBLE-emote6 " pulls her beanie over her eyes to fall asleep." ;
+	: BOBBLE-emote7 " gargles something incomprehensible." ;
+	
+	deck-new
+		card: BOBBLE-emote1
+		card: BOBBLE-emote2
+		card: BOBBLE-emote3
+		card: BOBBLE-emote4
+		card: BOBBLE-emote5
+		card: BOBBLE-emote6
+		card: BOBBLE-emote7
+	constant BOBBLE-EMOTES
+	BOBBLE-EMOTES var bobble-emotes
+	BOBBLE-EMOTES shuffles to bobble-emotes	
+	
+: bobble-oneliner
+	bobble-oneliners depths 0= if BOBBLE-ONELINERS shuffles to bobble-oneliners then
+	blurbslot 0= if
+		drawcard blurbsay
+	then
+;
+
+: bobble-emote
+	bobble-emotes depths 0= if BOBBLE-EMOTES shuffles to bobble-emotes then
+	blurbslot 0= if
+		qmsg ($ me .name@ .. bobble-emotes drawcard $) txt
+	then
+;
+
+	deck-new
+	7 cards: bobble-emote
+	5 cards: bobble-oneliner
+	card: bobble-appreciate
+	card: bobble-anticipate
+	card: bobble-encourage
+	card: bobble-sing
+	card: bobble-splash
+
+	constant BLURB-BOBBLE-DECK
+	BLURB-BOBBLE-DECK var blurb-bobble-deck
+	BLURB-BOBBLE-DECK shuffles to blurb-bobble-deck

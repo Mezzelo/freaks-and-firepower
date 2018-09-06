@@ -1,0 +1,61 @@
+	: BECCA-oneline1 "I could totally go for a smoke right now." ;
+	: BECCA-oneline2 "I really miss Ello Jello." ;
+	: BECCA-oneline3 "This is all such bull. Not that life before was any better." ;
+	: BECCA-oneline4 "I'm just glad I'm not trapped in school anymore." ;
+	: BECCA-oneline5 ($ 0x dd $chr rainbold .. " You've been livin' like a little girl... " rainbold .. 0x dd $chr rainbold $) ;
+	: BECCA-oneline6 "These zombies are such a load of tripe." ;
+
+	deck-new
+		card: BECCA-oneline1
+		card: BECCA-oneline2
+		card: BECCA-oneline3
+		card: BECCA-oneline4
+		card: BECCA-oneline5
+		card: BECCA-oneline6
+	constant BECCA-ONELINERS
+	BECCA-ONELINERS var becca-oneliners
+	BECCA-ONELINERS shuffles to becca-oneliners
+
+	: BECCA-emote1 " fishes in her pocket for a non-existent cigarette." ;
+	: BECCA-emote2 " mutters something about benches." ;
+	: BECCA-emote3 " wipes some blood off her discount jeans." ;
+	: BECCA-emote4 " rubs the back of her neck." ;
+	: BECCA-emote5 " talks under her breath about zombies being 'fresh'." ;
+	: BECCA-emote6 " snacks from a bag of butter-scotch." ;
+	: BECCA-emote7 " mutters something about 'fat sit'." ;
+	: BECCA-emote8 " polishes her axe." ;
+
+	deck-new
+		card: BECCA-emote1
+		card: BECCA-emote2
+		card: BECCA-emote3
+		card: BECCA-emote4
+		card: BECCA-emote5
+		card: BECCA-emote6
+		card: BECCA-emote7
+		card: BECCA-emote8
+	constant BECCA-EMOTES
+	BECCA-EMOTES var becca-emotes
+	BECCA-EMOTES shuffles to becca-emotes	
+	
+: becca-oneliner
+	becca-oneliners depths 0= if BECCA-ONELINERS shuffles to becca-oneliners then
+	blurbslot 0= if
+		drawcard blurbsay
+	then
+;
+
+: becca-emote
+	becca-emotes depths 0= if BECCA-EMOTES shuffles to becca-emotes then
+	blurbslot 0= if
+		qmsg ($ me .name@ .. becca-emotes drawcard $) txt
+	then
+;
+
+	deck-new
+	8 cards: becca-emote
+	6 cards: becca-oneliner
+
+	constant BLURB-BECCA-DECK
+	BLURB-BECCA-DECK var blurb-becca-deck
+	BLURB-BECCA-DECK shuffles to blurb-becca-deck

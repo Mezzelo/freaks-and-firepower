@@ -1,0 +1,263 @@
+(* uses base.df
+uses charfilt.df
+uses charstats.df
+uses road.df
+uses charstatmods.df *)
+
+// Plague, Pardue, Cans, Peglegs, Phil
+// PHIL AND CANS SELF-CONTAINED DUE TO LOCALITY ISSUES(?)
+
+road{
+
+0 value phil-countdown
+
+}
+
+cyoa{ road{
+
+cyoa-choice: plague-rob
+	"Riposte" cyoa-title!
+	ricon
+	team-count 1 > if
+		notcchar to victim
+		($ "As " .. cname .. " grabs the bag, " .. vname .. " is stabbed through the chest!" $) cyoa-text! bitefx
+		($ cname .. " manages to get away with all the medicine, along with a few other goodies!" $) +crtext
+		9 trunk-medical+
+		1 WEAPON_PDNADE trunk.weapon+
+		4 WEAPON_PDSNADE trunk.weapon+
+		4 WEAPON_SCALPEL trunk.weapon+
+		victim .kill
+		sfx{ creepy 30 fx .delay! }
+		($ "As " .. thegroup .. " drives off, they try to ignore the horrible screams coming from " .. vname .. "." $) +crtext
+	else
+		($ "As " .. cname .. " grabs the bag, " .. che .. " gets stabbed in the side!" $) cyoa-text! bitefx
+		cchar .sting2-
+		($ cname .. " manages to escape with some of the medicine, along with a few other goodies!" $) +crtext badfx
+		3 trunk-medical+
+		1 WEAPON_PDNADE trunk.weapon+
+		2 WEAPON_PDSNADE trunk.weapon+
+		2 WEAPON_SCALPEL trunk.weapon+
+	then
+;
+
+cyoa-bridge: plague-recruit
+	"Blood-soaked Battlefield" cyoa-title!
+	ricon recruitee .fitnessREV recruitee .medicalREV recruitee .mechanicREV
+	team-count 3 > if
+		($  rname .. " points out there's no room left in the car.
+		Should you leave someone behind for this strange figure?" $) cyoa-text! recruit-replace?
+	then;
+	most-ahole if
+		($ "Before she joins the group, the girl lights her bag ablaze.
+		" .. "Oh, that?  It's defective, not potent enough.
+		Don't worry, you'll be useful for my next batch!" pbold $) cyoa-text! goodfx
+	else
+		($ "Despite the mask, the girl is visibly excited.
+		" .. "It's been forever since I'd had real human beings to work on!" pbold $) cyoa-text! goodfx
+	then
+	recruited
+;
+
+cyoa: plague-test
+	"Blood-soaked Battlefield" cyoa-title!
+	char-gen to recruitee
+	1st-char choosechar
+	"Parachelsie" recruitee .name!
+	ricon
+	6 recruitee .morale! recruitee .plagueify
+	($ Thegroup .. " spots a small girl on the side of the road, wearing a bird mask and poking at a zombie's insides." $) cyoa-text! basic-tone
+	most-ahole if
+		($ 1st-char .name@ pbold .. " notices a large duffel bag brimming with medical supplies and other loot next to her." $) +crtext
+	else
+		($ "On closer inspection, the zombie's organs are strewn around her, and she " .. "reeks" fbold .. " of various indescribable stenches." $) +crtext
+	then
+	
+	choice( "Offer her a ride" )choice: plague-recruit
+	choice( "Drive away" )choice
+	most-ahole if
+		charchoice( " grabs the medicine and runs" )choice: plague-rob
+	then
+;
+
+cyoa-choice: pardue-expose
+	"CAUGHT" cyoa-title!
+	ricon
+	($ cname .. " reveals " .. che .. "'s been following the case of the " .. "TALLAHASSEE TERMINATOR" fbold .. " for a while, and has come to the startling conclusion that
+	" .. " MANFRED PARDUE IS THE TALLAHSSEE TERMINATOR!!!" fbold $) cyoa-text!
+	($ "Pardue" pbold .. ", eyes wide open, runs off screaming and blasting his shotgun into the air.
+	" .. "I'M INNOCENT, YOU'LL NEVER CATCH ME!!!
+	" fbold $) +crtext
+	($ "In his panic to escape the Tallahassee Police Department, he seems to have dropped his supplies!" $) +crtext goodfx
+	2 5 rnd trunk-medical+
+	8 13 rnd trunk-food+
+	50 75 rnd trunk-bullet+ 20 40 rnd trunk-shotgun-shell+ 30 60 rnd trunk-rifle-shell+
+	morale2+all
+;
+
+cyoa-choice: pardue-recruit
+	"DEAD AHEAD" cyoa-title!
+	ricon
+	team-count 3 > if
+		($  rname .. " is alarmed to find the car full.
+		" .. "WE DON'T HAVE TIME FOR THIS!" pbold .. 
+		" He tosses " .. cname .. " from the driver's seat and slams on the gas!" $) cyoa-text!
+		decruit-bad
+		recruitee .shootingREV recruitee .strengthREV recruitee .fitnessREV
+		recruited
+	then;
+		($ rname  .. " twirls his shotgun once more for good measure, then crams himself into the driver seat and slams on the gas.
+		" .. "TIME TO CHASE THE TALLAHASSEE TERMINATOR!!!" fbold $) cyoa-text! goodfx
+		recruitee .shootingREV recruitee .strengthREV recruitee .fitnessREV
+		recruited
+;
+
+cyoa: pardue-test
+	"HOMICIDE" cyoa-title!
+	char-gen to recruitee
+	someone choosechar
+	"Pardue" recruitee .name!
+	ricon
+	6 recruitee .morale! recruitee .parduify
+	($ Thegroup .. " approaches a town, led on by incessant shotgun blasts. In the middle of the town is a man with " .. "ASTOUNDINGLY THICK SKIN" rainbold .. ", twirling a shotgun and blasting zombies around him." $) cyoa-text! basic-tone
+	($ "Can you lend me a ride?  I'm detective MANFRED PARDUE, I need to apprehend the " pbold .. "TALLAHASSEE TERMINATOR!" fbold $) +crtext
+	
+	choice( "Let's catch him!" )choice: pardue-recruit
+	choice( "You're on your own" )choice
+	most-paranoid if
+		charchoice( " reveals a stunning twist!" )choice: pardue-expose
+	then
+;
+
+cyoa: cans-addiction
+	115 stpick if choosechar cicon else exit then
+	"Crippling Addiction" cyoa-title!
+	1 3 rnd case
+	1 of 
+		($ "Cans" pbold .. " starts seizing up. He quickly begins rifling through his supplies with trembling arms." $) cyoa-text!
+	endof
+	2 of 
+		($ "Cans" pbold .. " starts trembling from withdrawal. He searches frantically for some medication." $) cyoa-text!
+	endof
+	3 of 
+		($ "Cans" pbold .. " begins to shake from his withdrawal. He looks around for some pills." $) cyoa-text!
+	endof
+	endcase
+	trunk-medical 0 > if
+		($ "He grabs a bottle of painkillers and pours the entire thing down his eye-hole." $) +cr +text
+		cchar .shooting@ 6 < if
+			($ " He begins to regain his lost focus!" $) +text goodfx 
+			8 STAT_SHOOTING cchar .stat+
+		else
+			($ " That seems to keep him relaxed..." $) +text basic-tone
+		then
+		WEAPON_BKDOLT cchar .weapona!
+		WEAPON_BKDOLT cchar .weapon_nodropa!
+		WEAPON_BKBEAGLE cchar .weaponb!
+		WEAPON_BKBEAGLE cchar .weapon_nodropb!
+		cchar .vitality@ 3 < if
+			STAT_VITALITY cchar .stat++
+			cchar .health++
+		then
+		-1 trunk-medical+
+	else
+		($ "Unfortunately, his medicine is nowhere to be found! He holds his bucket-head in pain as he succumbs to the hallucinations." $) +cr +text badfx
+		cchar .vitality@ 1 > if
+			STAT_VITALITY cchar .stat--
+			cchar .health@ 1 > if
+				cchar .health--
+			then 
+		then
+		cchar .shooting@ 2 > if
+			-8 STAT_SHOOTING cchar .stat+
+		then
+		WEAPON_DOLT cchar .weapona!
+		WEAPON_DOLT cchar .weapon_nodropa!
+		WEAPON_BEAGLE cchar .weaponb!
+		WEAPON_BEAGLE cchar .weapon_nodropb!
+	then
+;
+
+cyoa-bridge: cans-recruit
+	"Lucky Shot" cyoa-title!
+	ricon recruitee .shootingREV
+	team-count 3 > if
+		($  "Unfortunately, there's not enough room in the car.
+			Should someone leave to make room for this mysterious figure?" $) cyoa-text! recruit-replace?
+	then;
+	($ "The man ducks his bucket under the hood and slides into the back, without a word." $) cyoa-text! goodfx
+	recruited
+;
+
+cyoa: cans-test
+	"Lucky Shot" cyoa-title!
+	char-gen to recruitee
+	someone choosechar
+	"Cans" recruitee .name!
+	ricon
+	5 recruitee .morale! recruitee .canify
+	($ Thegroup .. " spots someone by the side of the road, flipping a coin into the air. As the car pulls up, he quickly empties two pistols into the coin!
+	Without saying a word, he slowly turns his bucket-clad head towards the car." $) cyoa-text! basic-tone
+	medicalest-pass if
+		($ medicalest .name@ .. " notes some subtle trembling, common signs of an addiction. This person may not be completely healthy." $) +crtext
+	then
+	
+	choice( "Offer him a seat" )choice: cans-recruit
+	choice( "Too hot to handle!" )choice
+
+;
+
+cyoa-bridge: bender-recruit
+	"Ride Like Knights" cyoa-title!
+	ricon recruitee .strengthREV recruitee .fitnessREV 
+	team-count 3 > if
+		($  "Unfortunately, there's not enough room in the car.
+			Should someone leave to make room for the knight?" $) cyoa-text! recruit-replace?
+	then;
+	($ "The man crams himself into the car shield-first, breaking a few hinges on the way. He manages to squeeze into the car eventually." $) cyoa-text! goodfx
+	recruited
+;
+
+cyoa: bender-test
+	"Ride Like Knights" cyoa-title!
+	char-gen to recruitee
+	someone choosechar
+	"Tom" recruitee .name!
+	ricon
+	5 recruitee .morale! recruitee .benderify
+	($ Thegroup .. " encounters a man dressed in a knight's clothing, wielding a mace and a shield. He hails " .. thegroup .. " as they pass by.
+	" .. "Spare some room for a weary traveler? I seek passage to Canada!" pbold $) cyoa-text! basic-tone
+	choice( "Offer him a ride" )choice: bender-recruit
+	choice( "No chivalry here" )choice
+
+;
+
+cyoa-choice: phil-second
+	($ "Phil E. Raes" pbold .. " hands over the carbine, then leaves the road to find another group to sell his wares to.
+	" .. "THANKS, ENJOY YOUR PURCHASE!" fbold $) cyoa-text!
+	-17 trunk-food+ 1 WEAPON_M4 trunk.weapon+ decruit-good-silent goodfx
+;
+
+cyoa-choice: phil-broke
+	($ "Phil E. Raes" pbold .. " is sad to see the payment can't be made. He accepts it regardless, and allows the group to keep whatever ammo remains." $) cyoa-text!
+		decruit-bad-silent badfx
+;
+
+cyoa: phil-timeup
+	114 stpick if choosechar cicon else ($ "The second payment" rbold .. " would be due now, but there's nobody to pay..." $) text! exit then
+	"The Second Payment!" cyoa-title!
+	solo if 
+		($ "Phil E. Raes" pbold .. " is sad to find that nobody is left to pay for the rifle!
+		He leaves the road, in search of another group to sell his wares to." $) cyoa-text!
+		decruit-bad-silent badfx
+	then;
+	($ "Phil E. Raes" pbold .. " notifies " .. thegroup .. " that the second payment is due.
+	The group must pay 17 food, or they will have to let go of the gun!" $) cyoa-text! basic-tone
+	trunk-food 16 > if
+		choice( "Make the second payment - 17 food" )choice: phil-second
+	then
+	choice( "We can't afford it!" )choice: phil-broke
+;
+
+} }
+
+

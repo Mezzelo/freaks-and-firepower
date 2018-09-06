@@ -1,0 +1,37 @@
+cyoa{ road{
+
+cyoa: rare3-sorsby
+	char-gen to recruitee 109 recruitee .specialtype! 1 recruitee .headoff.y! ricon
+	"Book Sale" cyoa-title!
+	($ "While driving down the road, " .. thegroup .. " spots a convict heading into a bookstore. As they follow him, they suddenly notice a horde of cops heading in their direction!" $) cyoa-text! basic-tone
+	2 9 15 rnd 1.5 siegecast // 2.2
+	"events/rareloc/region/sorsby.df" $load-region
+		choice( "Prepare for siege!" )choice: premission
+		gas-draw
+;
+
+cyoa: rare3-convention
+	char-gen to recruitee -123 recruitee .specialtype! ricon
+	"Mall Convention" cyoa-title!
+	($ "Approaching a mall, " .. thegroup .. " is trapped by a horde of zombified convention-goers! Overwhelmed and also intrigued, the group enters, wondering what horrors await them." $) cyoa-text! basic-tone
+	2.5 9 15 rnd 2.5 siegecast // 2.2
+	"events/rareloc/region/convention.df" $load-region
+		choice( "Prepare for siege!" )choice: premission
+		gas-draw
+;
+
+cyoa: rare3-bleach
+	
+	"Bleach Factory" cyoa-title!
+	someicon
+	($ Thegroup .. " finds a chemical factory, still emitting toxic white fumes from when it once operated. Maybe something of value could be found inside." $) cyoa-text! basic-tone
+	1.3 1.7 frnd 8 15 frnd 0 2 rnd zforecast
+	"events/rareloc/region/bleachfac.df" $load-region
+		choice( "Explore Factory" )choice: premission
+		gas-draw
+;
+
+} }
+
+
+

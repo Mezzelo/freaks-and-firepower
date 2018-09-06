@@ -1,0 +1,52 @@
+
+cyoa{
+
+cyoa-bridge: npc-scipio-recruit
+	cchar to recruitee goodfx clear-cyoa
+	($ cname .. " is happy to show off his great skill to " .. pname .. "." $) text!
+	recruitee .strengthREV recruitee .fitnessREV
+	0.25 cchar .ai.wander_chance! 0 nearest .unseen!
+	recruit-yesno
+;
+
+cyoa: npc-africanus
+	"The Champion" cyoa-title!
+	interactee .character@ choosechar cicon
+	($ "You have stumbled upon " .. "Scipio Africanus" pbold .. ", great champion of professional wrestling!" $) text!
+	($ "A sense of awe overwhelms you as you take in this glorious Roman character." $) +crtext
+		choice( "Ignore him" )choice
+		choice( "Recruit him" )choice: npc-scipio-recruit
+;
+
+}
+
+: .scipify args( char )
+	"Scipio" <- char .name!
+	-119 <- char .specialtype!
+	0 <- char .female!
+	1 <- char .headoff.y!
+	4 <- char .strength! 5 <- char .fitness! 0 <- char .shooting! 0 <- char .medical! 0 <- char .mechanical!
+	2 <- char .composure! 3 <- char .loyalty! 3 <- char .wits! 2 <- char .attitude!
+	($ "Africanus" pbold .. " is the current reigning champion of the " .. "COMPLETELY REAL SPORT" fbold .. " of professional wrestling." $) <- char .job!
+	WEAPON_PANKRATION <- char .weapon_default!
+	<- char cyoa{ ' npc-africanus cyoa! }
+	drop
+;
+
+locdef{
+		
+location
+		tags: africanus
+		max-rooms: 2
+		entry-tags: trashed
+		script: set-theme-house
+		pre-script: set-theme-house
+		
+		room-choice: trashed
+			room-weight: 10
+			room-count: 2
+			room-script: nad
+			room-post-script: still-npc .scipify
+			filter-only
+			
+}

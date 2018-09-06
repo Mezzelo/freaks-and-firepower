@@ -1,0 +1,192 @@
+	: PLAGUE-oneline1 "Mind signing up as an organ donor?" ;
+	: PLAGUE-oneline2 "No, I'm not taking it off." ;
+	: PLAGUE-oneline3 "5, 6, 7, 8, store the bodies in a crate..." ;
+	: PLAGUE-oneline4 "Stop breathing on me!" ;
+	: PLAGUE-oneline5 "I have some fresh herbs for that bite of yours." ;
+	
+: plague-stare
+	2nd-char choosechar
+	blurbslot 0= if 
+		solo if 
+			($ "stares into the distance as she polishes her knife." $) blurbdo 
+		then;
+		($ "stares a little too closely at " ..  2nd-char .name@ .. " as she polishes her knife." $) blurbdo
+	else
+		blurbslot 2 < if
+			me .trait@ "Oblivious" $= if
+				($ "I like you too, " .. 1st-char .name@ .. "!" $) blurbsay
+				STAT_MORALE 1st-char .stat++ STAT_MORALE me .stat++
+			else
+				($ "feels less than comfortable about this." $) blurbdo
+				STAT_MORALE me .stat--
+			then
+		then
+	then
+;
+
+: plague-touch
+	2nd-char choosechar
+	blurbslot 0= if 
+		solo if 
+			($ "stares into the distance as she polishes her knife." $) blurbdo 
+		then;
+		($ "is caught injecting something sticking a syringe into " ..  2nd-char .name@ .. "'s back." $) blurbdo
+	else
+		blurbslot 2 < if
+			me .trait@ "Oblivious" $= if
+				($ "Woah, I'm feeling stronger already!" $) blurbsay
+				STAT_MORALE 1st-char .stat++ STAT_MORALE me .stat++
+			else
+				ctemper- if
+					($ "OH MY GOD I'M GOING TO KILL YOU!!!" $) blurbsay
+					STAT_MORALE 1st-char .stat-- STAT_MORALE me .stat-- STAT_MORALE me .stat--
+				else
+					($ "tries not to think about what new diseases they have." $) blurbdo
+					STAT_MORALE me .stat--
+				then 
+			then
+		then
+	then
+;
+
+: plague-cackle
+	2nd-char choosechar
+	blurbslot 0= if 
+		($ "cackles softly to herself." $) blurbdo 
+	else
+		blurbslot 2 < if
+			cattitude+ not if
+				($ "KNOCK THAT OFF, IT'S CREEPY!" $) blurbsay
+				STAT_MORALE 1st-char .stat--
+			else
+				($ "tries to brush it off as completely innocent." $) blurbdo
+				STAT_MORALE me .stat--
+			then 
+		then
+	then
+;
+
+: plague-sing
+	2nd-char choosechar
+	blurbslot 0= if 
+		($ "begins singing softly to herself." $) blurbdo 
+	else
+		blurbslot 2 < if
+			cattitude- if
+				($ "DON'T DO THAT NOBODY LIKES YOU!" $) blurbsay
+				STAT_MORALE 1st-char .stat--
+			else
+				($ "finds it's actually quite comforting!" $) blurbdo
+				STAT_MORALE 1st-char .stat++ STAT_MORALE me .stat++
+			then 
+		then
+	then
+;
+
+: plague-draw
+	2nd-char choosechar
+	blurbslot 0= if 
+		($ "starts drawing blood from her own arm." $) blurbdo 
+	else
+		blurbslot 2 < if
+			me .trait@ "Oblivious" $= if
+				($ "That's sweet!  Can you do that to me too?" $) blurbsay
+				STAT_MORALE 1st-char .stat++ STAT_MORALE me .stat++
+			else
+				ctemper+ not if
+					($ "is visibly discomforted by this." $) blurbdo
+					STAT_MORALE me .stat--
+				else
+					($ "tries their best to ignore it." $) blurbdo
+				then 
+			then
+		then
+	then
+;
+
+: plague-dissect
+	2nd-char choosechar
+	blurbslot 0= if 
+		solo if 
+			($ "starts slicing open a zombie's head." $) blurbdo 
+		then;
+		($ "is caught dissecting a zombie's head." $) blurbdo
+	else
+		blurbslot 2 < if
+			cattitude+ not if
+				($ "Gross, throw that away!" $) blurbsay
+				STAT_MORALE 1st-char .stat--
+			else
+				($ "joins in for a free anatomy lesson!" $) blurbdo
+				STAT_MORALE 1st-char .stat++ STAT_MORALE me .stat++
+			then 
+		then
+	then
+;
+
+	deck-new
+		card: PLAGUE-oneline1
+		card: PLAGUE-oneline2
+		card: PLAGUE-oneline3
+		card: PLAGUE-oneline4
+		card: PLAGUE-oneline5
+	constant PLAGUE-ONELINERS
+	PLAGUE-ONELINERS var plague-oneliners
+	PLAGUE-ONELINERS shuffles to plague-oneliners
+
+	: PLAGUE-emote1 " fidgets with her mask." ;
+	: PLAGUE-emote2 " sits silently." ;
+	: PLAGUE-emote3 " twirls a scalpel through her fingers." ;
+	: PLAGUE-emote4 " puts some gloves on." ;
+	: PLAGUE-emote5 " stares off into the distant horizon." ;
+	: PLAGUE-emote6 " begins counting her scalpels." ;
+	: PLAGUE-emote7 " polishes off her knife." ;
+	: PLAGUE-emote8 " organizes her medicines." ;
+	: PLAGUE-emote9 " adjusts the straps on her mask." ;
+	: PLAGUE-emote10 " polishes the lenses on her mask." ;
+	: PLAGUE-emote11 " stuffs some violets under her beak." ;
+
+	deck-new
+		card: PLAGUE-emote1
+		card: PLAGUE-emote2
+		card: PLAGUE-emote3
+		card: PLAGUE-emote4
+		card: PLAGUE-emote5
+		card: PLAGUE-emote6
+		card: PLAGUE-emote7
+		card: PLAGUE-emote8
+		card: PLAGUE-emote9
+		card: PLAGUE-emote10
+		card: PLAGUE-emote11
+	constant PLAGUE-EMOTES
+	PLAGUE-EMOTES var plague-emotes
+	PLAGUE-EMOTES shuffles to plague-emotes	
+	
+: plague-oneliner
+	plague-oneliners depths 0= if PLAGUE-ONELINERS shuffles to plague-oneliners then
+	blurbslot 0= if
+		drawcard blurbsay
+	then
+;
+
+: plague-emote
+	plague-emotes depths 0= if PLAGUE-EMOTES shuffles to plague-emotes then
+	blurbslot 0= if
+		qmsg ($ me .name@ .. plague-emotes drawcard $) txt
+	then
+;
+
+	deck-new
+	card: plague-stare
+	card: plague-touch
+	card: plague-cackle
+	card: plague-sing
+	card: plague-draw
+	card: plague-dissect
+	2 cards: ...say
+	11 cards: plague-emote
+	5 cards: plague-oneliner
+
+	constant BLURB-PLAGUE-DECK
+	BLURB-PLAGUE-DECK var blurb-plague-deck
+	BLURB-PLAGUE-DECK shuffles to blurb-plague-deck

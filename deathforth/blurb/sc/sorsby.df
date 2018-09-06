@@ -1,0 +1,57 @@
+	: SORSBY-oneline1 "I could go for a sub sandwich right now." ;
+	: SORSBY-oneline2 "Where's my man Speed?" ;
+	: SORSBY-oneline3 "I hope they have more books in Canada." ;
+
+	deck-new
+		card: SORSBY-oneline1
+		card: SORSBY-oneline2
+		card: SORSBY-oneline3
+	constant SORSBY-ONELINERS
+	SORSBY-ONELINERS var sorsby-oneliners
+	SORSBY-ONELINERS shuffles to sorsby-oneliners
+
+	: SORSBY-emote1 " complains about his literacy needs." ;
+	: SORSBY-emote2 " complains about his hunger needs." ;
+	: SORSBY-emote3 " complains about his hygiene needs." ;
+	: SORSBY-emote4 " complains about his recreation needs." ;
+	: SORSBY-emote5 " complains about his comfort needs." ;
+	: SORSBY-emote6 " complains about his freedom needs." ;
+	: SORSBY-emote7 " complains about his literacy needs." ;
+	: SORSBY-emote8 " complains about his literacy needs." ;
+	: SORSBY-emote9 " complains about his literacy needs." ;
+
+	deck-new
+		card: SORSBY-emote1
+		card: SORSBY-emote2
+		card: SORSBY-emote3
+		card: SORSBY-emote4
+		card: SORSBY-emote5
+		card: SORSBY-emote6
+		card: SORSBY-emote7
+		card: SORSBY-emote8
+		card: SORSBY-emote9
+	constant SORSBY-EMOTES
+	SORSBY-EMOTES var sorsby-emotes
+	SORSBY-EMOTES shuffles to sorsby-emotes	
+	
+: sorsby-oneliner
+	sorsby-oneliners depths 0= if SORSBY-ONELINERS shuffles to sorsby-oneliners then
+	blurbslot 0= if
+		drawcard blurbsay
+	then
+;
+
+: sorsby-emote
+	sorsby-emotes depths 0= if SORSBY-EMOTES shuffles to sorsby-emotes then
+	blurbslot 0= if
+		qmsg ($ me .name@ .. sorsby-emotes drawcard $) txt
+	then
+;
+
+	deck-new
+	9 cards: sorsby-emote
+	3 cards: sorsby-oneliner
+
+	constant BLURB-SORSBY-DECK
+	BLURB-SORSBY-DECK var blurb-sorsby-deck
+	BLURB-SORSBY-DECK shuffles to blurb-sorsby-deck

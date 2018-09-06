@@ -1,0 +1,188 @@
+"../deathforth/rooms/bigoffice.txt" $load-rooms
+"../deathforth/rooms/industrial.txt" $add-rooms
+"../deathforth/rooms/restroom.txt" $add-rooms
+"events/inner/officeloc.df" $load
+
+cyoa{
+
+cyoa-choice: steve-recruit
+	cchar to recruitee
+	ricon
+	"It's a Hard Knock Life" cyoa-title!
+	($ "Steve Ray Gun" pbold .. " seems more than happy to join, with a life-time's supply of bleach at the ready.
+	He raises a bottle in a toast to victory.
+	" .. "Time to head out and get mauled to death. Oh, what a glorious life I've lived!!" pbold $) cyoa-text! goodfx
+	recruit-yesno
+;
+
+cyoa-bridge: steve-coolit
+	cchar to recruitee
+	ricon
+	"It's a Hard Knock Life" cyoa-title!
+	cool-it++
+	($ pname .. " tells him to COOL IT" .. "!!!
+	" fbold .. "Somehow, this goes over well with him.
+	" .. "I like your attitude, dink! Let's die on the road to Canada, together!" pbold $) cyoa-text! goodfx
+	recruit-yesno
+;
+
+cyoa: npc-steve
+	interactee .character@ choosechar cicon
+	"It's a Hard Knock Life" cyoa-title!
+	0 nearest .character@ .party!
+	($ "Staggering around the factory is a figure carrying a sack full of bleach, chugging down bottles and spilling it everywhere.
+	With the amount of empty bottles and zombies around him, it's a mystery to anyone as to how he's still alive." $) cyoa-text!
+	choice( "Ask him to join you" )choice: steve-recruit
+	most-grating if 
+		charchoice( " tells him to COOL IT" fcoolit )choice: steve-coolit
+	then
+	choice( "Leave him alone" )choice
+	clear-cyoa 
+;
+
+}
+
+: .stevifymap args( char )
+	"Steve" <- char .name!
+	116 <- char .specialtype!
+	0 <- char .female!
+	4 <- char .strength! 5 <- char .fitness! 1 <- char .shooting! 0 <- char .medical! 1  <- char .mechanical!
+	4 <- char .composure! 3 <- char .loyalty! 5 <- char .wits! 1 <- char .attitude!
+	($ "Ray Gun" pbold .. " has hollow bones, as per his Puerto Rican ancestry. Unfortunately, he never learned how to fly." $) <- char .job!
+	-3 STAT_MORALE <- char .bonus!
+	"Poison tolerance" <- char .perk! 
+	2 <- char .carrying.slot_count!
+	WEAPON_BLEACH <- char .weapona!
+	WEAPON_BLEACH <- char .weapon_nodropa! 25 <- char .stackeda!
+	WEAPON_MELBLCH <- char .weaponb! WEAPON_MELBLCH <- char .weapon_nodropb!
+	WEAPON_MELBLCH <- char .weapon_default!
+	statmod{ MOD_SWAP_ATTACK <- char .setmod } <- char .swapspecial
+	<- char cyoa{ ' npc-steve cyoa! }
+	drop
+;
+
+: steveplace
+	new-npc 0 lt .leaveok! lt .character@ .stevifymap
+;
+
+	location
+		tags: factory
+		max-rooms: 16
+		entry-tags: indust-start
+		
+		2 value indroomcountdown
+		
+		: restdoor random-door "restroom" only-with-door ;		
+		: extraindloot
+			30 %chance if random-door "treasure" only-with-door then 
+			20 %chance if random-door "death" only-with-door then 
+		;
+		
+		: factoryhall
+			factorylloot
+			random-door "indust-room" only-with-door
+			extraindloot
+		;
+
+		: startfactoryhall
+			3 for random-door "indust-hall" only-with-door next
+		;
+		
+		: tryfactoryend
+			factorylloot
+			' indroomcountdown --
+			indroomcountdown 1 < if 
+				random-door "execsafe" only-with-door
+				random-door "emplounge" only-with-door
+				extraindloot restdoor
+			then;
+			random-door "indust-hall" with-door
+		;
+		
+		: spreadbleach
+			2 4 rnd for bleach .scatter next
+		;
+		
+		
+		script: factory-theme 
+		post-script: 10diff %zombs map{ room-papers 25 %chance if swreckage then 15 %chance if room-garbage then } nad ndx
+
+		
+		room-choice: indust-start
+			room-weight: 1
+			room-count: 1
+			room-post-script: startfactoryhall spreadbleach
+			filter-only
+		
+		room-choice: indust-room
+			room-weight: 1
+			room-count: 2
+			room-post-script: tryfactoryend spreadbleach
+			filter-only
+			
+		room-choice: execsafe
+			room-weight: 10
+			room-count: 1
+			room-script: floor-office
+			room-post-script: execloot  spreadbleach
+			filter-only
+		
+		room-choice: emplounge
+			room-weight: 10
+			room-count: 1
+			room-script: 
+			room-post-script: officefood restdoor steveplace spreadbleach
+			filter-only			
+
+		room-choice: indust-room
+			room-weight: 10
+			room-count: 1
+			filter-only
+			
+		room-choice: indust-room
+			room-weight: 10
+			room-count: 1
+			room-script: combonote s
+			room-post-script: spreadbleach
+			filter-only
+
+		room-choice: treasure
+			room-weight: 1
+			room-count: 3
+			room-post-script: spreadbleach
+			filter-only
+			
+		room-choice: restroom
+			room-weight: 10
+			room-count: 1
+			room-script: floor-bath
+		
+		room-choice: death
+			room-weight: 1
+			room-count: 1
+			filter-only
+
+		room-choice: indust-hall
+			room-weight: 1
+			room-count: 4
+			room-post-script: factoryhall spreadbleach
+			filter-only
+
+regiondef{
+
+	region: industry
+		w: 40
+		h: 23
+		max-locs: 1
+		script: timeofday o'clock resetsafe
+		post-script: 10diff %zombs inspawn
+
+		inside no-prefab
+
+		"REGION LOCATIONS" print
+					
+		loc-choice: factory
+			loc-weight: 99
+			loc-count: 1
+
+}

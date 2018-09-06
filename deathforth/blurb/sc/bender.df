@@ -1,0 +1,55 @@
+	: BENDER-oneline1 "We must push ourselves to new heights of glory!" ;
+	: BENDER-oneline2 "We must return to the frey once more!" ;
+	: BENDER-oneline3 "Perhaps our names be marked to die, then let us tally no further!" ;
+	: BENDER-oneline4 "We ride as knights today!" ;
+	: BENDER-oneline5 "For the glory of the light, the darkness shall not win today!" ;
+	: BENDER-oneline6 "Remember Agincourt!" ;
+	
+	deck-new
+		card: BENDER-oneline1
+		card: BENDER-oneline2
+		card: BENDER-oneline3
+		card: BENDER-oneline4
+		card: BENDER-oneline5
+		card: BENDER-oneline6
+	constant BENDER-ONELINERS
+	BENDER-ONELINERS var bender-oneliners
+	BENDER-ONELINERS shuffles to bender-oneliners
+
+	: BENDER-emote1 " polishes his sword." ;
+	: BENDER-emote2 " chants a cry of victory." ;
+	: BENDER-emote3 " lets out a battle-cry in the car." ;
+	: BENDER-emote4 " checks his gloves." ;
+	: BENDER-emote5 " redoes his belt." ;
+
+	deck-new
+		card: BENDER-emote1
+		card: BENDER-emote2
+		card: BENDER-emote3
+		card: BENDER-emote4
+		card: BENDER-emote5
+	constant BENDER-EMOTES
+	BENDER-EMOTES var bender-emotes
+	BENDER-EMOTES shuffles to bender-emotes	
+	
+: bender-oneliner
+	bender-oneliners depths 0= if BENDER-ONELINERS shuffles to bender-oneliners then
+	blurbslot 0= if
+		drawcard blurbsay
+	then
+;
+
+: bender-emote
+	bender-emotes depths 0= if BENDER-EMOTES shuffles to bender-emotes then
+	blurbslot 0= if
+		qmsg ($ me .name@ .. bender-emotes drawcard $) txt
+	then
+;
+
+	deck-new
+	5 cards: bender-emote
+	6 cards: bender-oneliner
+
+	constant BLURB-BENDER-DECK
+	BLURB-BENDER-DECK var blurb-bender-deck
+	BLURB-BENDER-DECK shuffles to blurb-bender-deck

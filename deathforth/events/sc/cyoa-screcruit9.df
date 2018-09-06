@@ -1,0 +1,154 @@
+(* uses base.df
+uses charfilt.df
+uses charstats.df
+uses road.df
+uses charstatmods.df *)
+
+// Ferdinand, May, Coach, Chad, 
+
+road{
+
+}
+
+
+cyoa{ road{
+
+cyoa-bridge: ferdinand-recruit
+	"Sick score" cyoa-title!
+	ricon recruitee .temperREV recruitee .attitudeREV
+	team-count 3 > if
+		someone choosechar
+		($ rname .. " would like to step in the car, but " .. cname .. " refuses to sit next to him, because he stinks, really bad.
+			Someone will have to leave to make room for him." $) cyoa-text! recruit-replace?
+	then;
+	($ rname .. " jumps into the back, full of gusto and gunpowder." $) cyoa-text! goodfx
+	recruited
+;
+
+cyoa: ferdinand-test
+	"Sick score" cyoa-title!
+	char-gen to recruitee
+	"Ferdinand" recruitee .name!
+	ricon
+	recruitee .ferdinandify
+	4 recruitee .morale!
+	($ "While exploring a park, " .. thegroup .. " is accosted by someone wanting to hitch a ride. He's twirling what appears to be a switchblade in his hand, though he doesn't seem to be threatening anyone.
+	" .. "Heading north? I hear it's legal to smoke up there, can I come? I've got a lot to share!" pbold $) cyoa-text! basic-tone
+	choice( "Let him join" )choice: ferdinand-recruit
+	choice( "Back away" )choice
+
+;
+
+cyoa-bridge: may-recruit
+	"Shapes" cyoa-title!
+	ricon recruitee .temperREV recruitee .attitudeREV
+	team-count 3 > if
+		($ "Some life returns into her dull eyes. She seems excited, but her optimism dwindles when she finds out the car is full.
+		Someone will have to leave to make room." $) cyoa-text! recruit-replace?
+	then;
+	($ "A faint smile spreads across her face.
+		" .. "Glad to see someone else is out there. Let's go!" pbold $) cyoa-text! goodfx
+	recruited
+;
+
+cyoa: may-test
+	"Shapes" cyoa-title!
+	char-gen to recruitee
+	"May" recruitee .name!
+	ricon
+	recruitee .maeify
+	2 recruitee .morale!
+	($ Thegroup .. " finds a student curled up in her dorm, clutching a bat and trembling. Probably not with fear, considering the dozens of zombie corpses strewn out in the hallway.
+	Noticing " .. thegroup .. "'s presence, she looks up slowly, eyes wide." $) cyoa-text! basic-tone
+	choice( "Ask her to join" )choice: may-recruit
+	choice( "Back off" )choice
+;
+
+cyoa: may-return
+	-122 stpick if choosechar cicon else exit then
+	"Astral craze" cyoa-title!
+	team-count 1 > if
+		($ cname .. " apologizes for " .. "FLIPPING OUT SUPER HARD" fbold .. "." $) cyoa-text!
+		1 3 rnd case
+			1 of 
+				($ "Sorry, I got really scared back there! I hope I didn't hurt anyone." pbold $) +cr +text
+			endof
+			2 of 
+				($ "It was all... shapes. Smelly, shambling shattered fragments. I think everything's okay now." pbold $) +cr +text
+			endof
+			3 of 
+				($ "I'll try not to do that again. If you think that was bad though, you should have seen prom night!" pbold $) +cr +text
+			endof
+		endcase
+		($ "She seems to have come down from her craze, turning back into the flawed, trashy mammal we all once knew." $) +cr +text
+	else
+		($ cname .. " comes down from her craze, dazed and confused, but still alive. After a bit of rest, she steadies her mind for the rough road ahead." $) cyoa-text!
+	then
+	cchar .remaeify
+;
+
+cyoa-bridge: coach-recruit
+	"Nice neighborhood" cyoa-title!
+	ricon recruitee .strengthREV recruitee .fitnessREV recruitee .attitudeREV 
+	team-count 3 > if
+		someone choosechar
+		($ rname .. " crushes someone on entering the car. " .. cname .. " insists on someone leaving, this won't work all the way up to Canada." $) cyoa-text! recruit-replace?
+	then;
+	($ rname .. " stuffs himself into the car, still munching on his chocolate." $) cyoa-text! goodfx
+	recruited
+;
+
+cyoa: coach-test
+	"Nice neighborhood" cyoa-title!
+	char-gen to recruitee
+	"Coach" recruitee .name!
+	ricon
+	recruitee .coachify
+	4 recruitee .morale!
+	($ Thegroup .. " finds a man in a fast food joint, chomping on a chocolate bar.
+	" .. "Heading up to Canada? Maybe we could find the military up there!" pbold $) cyoa-text! basic-tone
+	choice( "Ask him to join" )choice: coach-recruit
+	choice( "Leave him be" )choice
+;
+
+cyoa: coach-return
+	-120 stpick if choosechar cicon else exit then
+	"I have not come so far" cyoa-title!
+	team-count 1 > if
+		($ cname .. " explains he'd been holding that chainsaw with him in case of emergencies. Now that he's got it out, he may as well keep using it.
+		" .. "It got all Baghdad and shit back there! I think we all got out okay.
+		" pbold .. "Unfortunately, " .. cname .. " doesn't appear to be hiding any extra gas, or any more chainsaws for that matter." $) cyoa-text!
+		cchar .recoachify
+	then;
+	($ cname .. " was holding that chainsaw with him in case of emergencies. Now that he's got it out, he may as well keep using it.
+	Unfortunately, " .. cname .. " doesn't have any extra gas, or any more chainsaws for that matter." $) cyoa-text!
+	cchar .recoachify
+;
+
+
+cyoa-bridge: chad-recruit
+	"Packanack" cyoa-title!
+	ricon recruitee .attitudeREV recruitee
+	team-count 3 > if
+		($ rname .. " refuses to get in, sitting so close to each other would be so uncomfortable! Someone has to leave to make room." $) cyoa-text! recruit-replace?
+	then;
+	($ rname .. " steps into the back, happy to have a group of people escorting him." $) cyoa-text! goodfx
+	recruited
+;
+
+cyoa: chad-test
+	"Packanack" cyoa-title!
+	char-gen to recruitee
+	"Chad" recruitee .name!
+	ricon
+	recruitee .chadify
+	4 recruitee .morale!
+	($ "When searching a lakeside resort, " .. thegroup .. " is confronted by a well-groomed teen in some very high-end clothing.
+	" .. "H-hey! This is my pa's lake, you can't be here! You have to take me north, I can pay you!" pbold $) cyoa-text! basic-tone
+	choice( "Let him join" )choice: chad-recruit
+	choice( "Abandon him" )choice
+;
+
+} }
+
+
