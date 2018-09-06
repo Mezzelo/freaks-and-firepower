@@ -1,0 +1,3 @@
+gfx/* linguist-vendored
+data/music/* linguist-vendored
+*.df linguist-language=Forth
