@@ -1,6 +1,4 @@
 # freaks-and-firearms
-Content mod for Death Road to Canada
-
 Freaks n' Firepower is a mod for DRTC developed by Mezzelo.
 This current version is updated for 2/14 VALENTINES DAY patch.  Future versions will probably not work, so don't try it unless you really want to!  This will NOT work on the test builds!
 Also you should totally start new runs with this installed, you can NOT find new special characters, traders, or events on old runs.
