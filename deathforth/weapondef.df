@@ -63,6 +63,7 @@ WEAPON_CUSTOM value custom
 : melee_range_min_hint: lev> melee_range_min_hint! ;
 : thrown_lift: lev> thrown_lift! ;
 : no_zombie_break: lev> no_zombie_break! ;
+: no_discard: lev> no_discard! ;
 : wielder_handler: lev> wielder_handler! ;
 : swoosh_particle1: lev> particles_base_id + swoosh1id! ;
 : swoosh_particle2: lev> particles_base_id + swoosh2id! ;
@@ -96,6 +97,7 @@ WEAPON_CUSTOM value custom
 : shoot_thru: lev> shoot_thru! ; ( scale for bullet continue after kill )
 : reload: lev> reload! ; ( seconds )
 : revolver: lev> revolver! ; ( takes number of bullets as param, spits out N casings after N shots )
+: shell_count: lev> shell_count! ; ( spits out N casings at reload )
 : projectiles: lev> projectiles! ; ( mainly for shotgun )
 : spread_factor: lev> spread_factor! ; ( trajectory variance )
 : boom_factor: lev> boom_factor! ; ( SCREEN SHAKE and related FX )
@@ -144,6 +146,7 @@ WEAPON_CUSTOM value custom
 : pointblank_near 30 point_blank_dist! 64 range_guess! ;
 : pointblank_mid 40 point_blank_dist! 100 range_guess! ;
 : pointblank_far 50 point_blank_dist! 150 range_guess! ;
+: ai_mule 1 no_ai_use! 1 no_discard! ;
 
 // Sprite offsets within sheet
 0 constant GUNS1
@@ -157,14 +160,12 @@ WEAPON_CUSTOM value custom
 176 constant GUNS2
 192 constant MELEE7
 
-224 constant FNFGUNS
-240 constant FNFGUNS2
-256 constant FNFGUNS3
-272 constant FNFMELEE
-288 constant FNFSGUNS
-304 constant FNFSMELEE
-
-
+240 constant FNFGUNS
+256 constant FNFGUNS2
+272 constant FNFGUNS3
+288 constant FNFGUNS4
+304 constant FNFMELEE
+320 constant FNFMELEE2
 
 }
 
@@ -182,6 +183,7 @@ select: WEAPON_PUNCH
 	lowestmelee
 
 custom: Claw
+	weapon: claw
 	spriteid: 0
 	cooldown: 0
 	melee_extra_hits: 0
@@ -271,7 +273,7 @@ WEAPON_FLAMETHROWER clone-to: blowtorch
 	cooldown: 0
 	lock_drift: 0.01
 	melee_break_scale: 0.5
-	// no_ai_use: 1
+	ai_mule
 
 	: blowfx args( on me ) <- on 2 * -> on
 		<- me .final-aim-angle <- me .flipx -5 * + anglexy 11 <- on + xymul <- me .pos xyadd 
@@ -406,8 +408,6 @@ custom: Chainsaw
 	melee_windup_angle: -180
 	melee_end_angle: 90
 	func: WEAPON_FUNC_CHAINSAW
-	melee_break_scale: 0.10
-	no_ai_use: 1
 	burn_active: 40
 	burn_idle: 160
 	
@@ -555,7 +555,7 @@ custom: Hunting rifle
 	pointblank_far
 
 // Knockback is PER BULLET
-custom: Pump action shotgun
+custom: Pump Shotgun
 	tags: shotgun
 	spriteid: GUNS1 2 +
 	gun_muzzle_height: 3
@@ -581,14 +581,33 @@ custom: Pump action shotgun
 	skill_angle_range: 25
 	pointblank_near
 	
-WEAPON_SHOTGUN clone-to: Semi-auto shotgun
-	tags: autoshot
-	boom_factor: 2.5
+custom: Semi-auto Shotgun
+	tags: autoshotgun
 	spriteid: GUNS1 9 +
-	reload: 0.45
-	shot_knockback: 1.25
+	gun_muzzle_height: 3
+	ammo_type: LOOT_SHOTGUN_SHELL
+	cock_sound: 2
+	boom_factor: 3
+	shot_power: 0.5
+	spread_factor: 4
+	cooldown: 0.75
+	reload: 0.4
+	power: 0.40
+	knockback: 1
+	projectiles: 5
+	func: WEAPON_FUNC_SHOOT
+	lengthscale: 0.5
+	melee_windup_angle: 0
+	melee_end_angle: 225
+	melee_reach: -16
+	shoot_thru: 0.1
+	shot_knockback: 1.5
 	auto_eject: 1
 	ammo_max: 80
+	melee_break_scale: 0
+	skill_angle_range: 25
+	badmelee
+	pointblank_near
 	
 custom: Slug Shotgun
 	spriteid: GUNS1 13 +
@@ -610,7 +629,7 @@ custom: Slug Shotgun
 	shoot_thru: 0.30
 	shot_knockback: 3
 	ammo_max: 40
-	melee_break_scale: 0.02
+	melee_break_scale: 0
 	skill_angle_range: 25
 	badmelee
 	pointblank_far
@@ -633,7 +652,7 @@ custom: BIG DAWG
 	melee_windup_angle: 0
 	melee_end_angle: 225
 	melee_reach: -16
-	shoot_thru: 0.1
+	shoot_thru: 0.15
 	shot_knockback: 4
 	ammo_max: 40
 	melee_break_scale: 0
@@ -1134,7 +1153,7 @@ voc{ mission
 			me .isattack? not if exit then
 			me .carryid@ if exit then
 			me .character@ .specialtype@ 65 = 10 %chance and if
-				0 me .character@ .health! me .pos 6 xypowboom
+				0 me .character@ .health! me .pos 20 xypowboom -1 lt .hitcheck.blast!
 			then
 			lovebeam
 		;
@@ -1531,7 +1550,7 @@ custom: Grenade
 	melee_thrown: 1
 	melee_thrown_lob: 2
 	stack_max: 6
-	no_ai_use: 1
+	ai_mule
 
 mission{
 
@@ -1571,7 +1590,7 @@ custom: Pipe bomb
 	melee_thrown: 1
 	melee_thrown_lob: 2
 	stack_max: 6
-	no_ai_use: 1
+	ai_mule
 
 mission{
 
@@ -2486,8 +2505,7 @@ custom: Flamethrower
 	func: WEAPON_FUNC_CUSTOM_AIMING
 	ammo_max: 100
 	wielder_handler: last
-//	no_ai_use: 0
-	no_ai_use: 1
+	ai_mule
 
 
 custom: Molotov
@@ -2499,8 +2517,7 @@ custom: Molotov
 	weapon: molotov
 	melee_range_hint: 75
 	melee_range_min_hint: 50
-	no_ai_use: 1
-//	no_ai_use: 0
+	ai_mule
 
 mission{
 
@@ -2793,6 +2810,7 @@ custom: flashlight
 	func: WEAPON_FUNC_FLASHLIGHT
 	melee_break_scale: 0.02
 	melee_extra_hits: 0
+	ai_mule
 
 custom: Pokin'
 	name: Pokin'
@@ -3152,7 +3170,7 @@ custom: Air horn
 	stack_max: 100
 	stack_as_charges: 1
 	stack_no_show: 1
-	no_ai_use: 1
+	ai_mule
 
 	melee_aiming: 1
 	melee_reach: 5
@@ -3574,7 +3592,7 @@ custom: Healing Spray
 	cooldown: 0
 	stack_max: HEALSPRAY_CHARGES
 	stack_as_charges: 1
-	no_ai_use: 1
+	ai_mule
 	power: 0
 	leaning: 0
 	swoosh_abs_particle1: 0
@@ -3848,6 +3866,7 @@ WEAPON_FLASHLIGHT clone-to: TactiCop Lite(TM)
 	cooldown: 0.7
 	melee_reach: 10
 	melee_break_scale: 0
+	no_ai_use: 0
 	wepscorebonus
 
 WEAPON_BUTT clone-to: Pig Butt
@@ -4096,7 +4115,7 @@ WEAPON_CAVALRY clone-to: Branch Trimmer
 	melee_extra_chance: 0.6
 	
 
- custom: GIGA GUSTER
+custom: GIGA GUSTER
 	weapon: gigaman
 	spriteid: MELEE6 0x 48 +
 	0x bd $chr chargename!
@@ -4374,7 +4393,7 @@ custom: Pirate Cannon
 	cooldown: 1
 	targeting: 0
 	func: WEAPON_FUNC_CUSTOM_AIMING
-	lock_drift: 0.01
+	lock_drift: 0.1 // was 0.01
 
 	stack_max: 100
 	stack_as_charges: 1
@@ -4492,7 +4511,7 @@ custom: Sciency Doodad
 	stack_as_charges: 1
 	chargename: ???
 	stack_no_show: 1
-	no_ai_use: 1
+	ai_mule
 	swoosh_abs_particle1: 0
 	swoosh_abs_particle2: 0
 	melee_fatigue_scale: 0
@@ -4798,18 +4817,7 @@ custom: Leaf blower
 			gameticks 3 & not if
 				25 <- me .weapon_state.val@ - onein if <- me .gas-smoke then
 			then
-		else
-(*
-			gameticks 1 & not if
-				<- me .pos particle{ new-gas-smoke pos! }
-				<- me .aim_angle@ anglexy
-					<- me .weapon_state.val@ 0.2 * xymul
-						particle{ vel@ xyadd vel! 15 ticks! 5 fade_in! ticks@ fade_out! 0.5 scale! 1.1 grow! }
-				<- me .aim_angle@ anglexy 15 xymul particle{ pos@ 3 + xyadd pos! }
-			then
-*)
 		then
-
 
 		// Rev down the engine
 		<- me .weapon_state.val@ 0.975 * <- me .weapon_state.val!
@@ -4829,206 +4837,480 @@ custom: Leaf blower
 
 	wielder_handler: last
 
-// FNF Moddeds/Uniques
-// unarmed
-
-			: wpunched args( me )
-			sfx{ noise 20 fx .freq! 750 fx .freq2! 15 fx .a! 750 fx .d! 0.5 1.2 frnd fx .pitch! 0.45 fx .scale! }
-			2 for
-				particle{ new <- me .pos pos!
-					0.21 0.45 1.0 rgb!
-					particles_base_id 0x 4d + spriteid!
-					i 1- 6 * wait!
-					<- me .aim_angle@ -30 30 frnd + dup angle! anglexy 1 xymul vel!
-					vel@ 9 * pos@ xyadd pos!
-					2 pos.z!
-					19 ticks! 4 fade_in! 15 fade_out!
-				}
-			next
-			2 for
-				particle{ new <- me .pos pos!
-					0.41 0.57 1.0 rgb!
-					particles_base_id 0x 4d + spriteid!
-					i 1- 6 * wait!
-					<- me .aim_angle@ -20 20 frnd + dup angle! anglexy 1 xymul vel!
-					vel@ 9 * pos@ xyadd pos!
-					2 pos.z!
-					15 ticks! 4 fade_in! 12 fade_out!
-				}
-				particle{ new <- me .pos pos!
-					0.45 0.72 1.0 rgb!
-					particles_base_id 0x 44 + spriteid!
-					i 1- 6 * wait!
-					<- me .aim_angle@ -10 10 frnd + dup angle! anglexy 1 xymul vel!
-					vel@ 16 * pos@ xyadd pos!
-					2 pos.z!
-					19 ticks! 2 fade_in! 15 fade_out!
-				}
-			next
-		;
-	
-	: wpunch-handler args( me eventid )
-		<- eventid THING_EVENT_SWING <> if then;
-			<- me wpunched
-	;
-
-WEAPON_BOXING clone-to: Water Slam
-	weapon: wslam
-	power: 1
-	cooldown: 1.0
-	knockback: 4
-	thrust_range: 3
-	melee_range: 10
-	swoosh_vel: 0.25
-	melee_extra_hits: 4
-	swoosh_particle1: 0x 43
-	swoosh_particle2: 0x 44
-	swoosh_range: 45
-	heavycooldown
-	wielder_handler: ' wpunch-handler
-	
-custom: Handcuffs
-	tags: cuffed
-	spriteid: FNFSMELEE 13 +
-	power: 0.75
-	knockback: 3
-	cooldown: 0
-	melee_reach: 5
-	melee_range: -8
-	swoosh_particle1: 3
-	swoosh_particle2: 3
-	no_held_sprite: 1
-	melee_extra_hits: 1
-	melee_extra_chance: 0.85
-	leaning: 2
-	
-custom: Pankration
-	spriteid: 0
-	power: 1.25
-	knockback: 2.5
-	leaning: -2.5
-	thrust_range: 4
-	cooldown: 0
-	swoosh_particle1: 0x 41
-	swoosh_particle2: 0x 42
-	swoosh_range: 0
-	no_held_sprite: 1
-	melee_range: 10
-	swoosh_vel: 0.25
-	
-			: rolled args( me )
-			sfx{ thump 12 delay! 0.5 fx .scale! 1000 fx .filt! 0.25 1 frnd fx .pitch! }
-		;
-	
-	: roller-handler args( me eventid )
-		<- eventid THING_EVENT_SWING <> if then;
-			<- me rolled
-	;
-	
-custom: Carbon roller
-	tags: croller
-	spriteid16x32: 12
-	power: 2.2
-	knockback: 3
-	cooldown: 0.7
-	melee_off.x: -2
-	melee_off.y: 0
-	melee_start_angle: 10
-	melee_windup_angle: 90
-	melee_end_angle: -5
-	melee_weapon_angle: -5
-	melee_retract: 0.9
-	melee_aiming: 1
-	melee_shift.y: -2
-	melee_off.x: 0
-	melee_aiming: 1
-	melee_reach: 6
-	melee_range: 3
-	
-	melee_shift.x: -3
-	melee_break_scale: 0
-	melee_extra_hits: 2
-	wielder_handler: ' roller-handler
-	wepscorebonus
-	
-			: sloshed args( me )
-			sfx{ noise 20 fx .freq! 750 fx .freq2! 15 fx .a! 750 fx .d! 0.7 1.5 frnd fx .pitch! 0.45 fx .scale! }
-				particle{ new <- me .pos pos!
-					0.0 0.0 1.0 rgb!
-					particles_base_id 0x 14 + spriteid!
-					1 1- 9 * wait!
-					<- me .aim_angle@ -30 30 frnd + dup angle! anglexy 1.5 xymul vel!
-					vel@ 8 * pos@ xyadd pos!
-					rndsign 2 * rotate!
-					2 pos.z!
-					21 ticks! 1 fade_in! 17 fade_out!
-				}
-				particle{ new <- me .pos pos!
-					0.0 0.0 1.0 rgb!
-					particles_base_id 0x 15 + spriteid!
-					1 1- 7 * wait!
-					<- me .aim_angle@ 20 -20 frnd + dup angle! anglexy 1.5 xymul vel!
-					vel@ 7 * pos@ xyadd pos!
-					rndsign 2 * rotate!
-					2 pos.z!
-					17 ticks! 1 fade_in! 14 fade_out!
-				}
-				particle{ new <- me .pos pos!
-					0.0 0.0 1.0 rgb!
-					particles_base_id 0x 17 + spriteid!
-					1 1- 6 * wait!
-					<- me .aim_angle@ 10 -10 frnd + dup angle! anglexy 1.5 xymul vel!
-					vel@ 6 * pos@ xyadd pos!
-					rndsign 2 * rotate!
-					2 pos.z!
-					16 ticks! 1 fade_in! 13 fade_out!
-				}
-		;
-	
-	: slosh-handler args( me eventid )
-		<- eventid THING_EVENT_SWING <> if then;
-			<- me sloshed
-	;
-custom: Slosher
-	tags: slosher
-	spriteid16x32: 13
-	power: 1.02
+WEAPON_RAYGUN clone-to: Off-brand Plasms Rifle
+	weapon: plasmarifle
+	FLASHY "PLASMS" .. WHITE .. chargename!
+	spriteid: MELEE6 0x 3e +
+	cooldown: 0.1
+	laser_type: 5
+	power: 0.2
 	knockback: 0.5
-	cooldown: 0.55
-	leaning: -1
-	melee_off.x: -2
-	melee_off.y: -2
-	melee_start_angle: 15
-	melee_windup_angle: -35
-	melee_shift.x: -3
-	melee_end_angle: 10
-	melee_weapon_angle: 10
-	melee_retract: 0.7
-	melee_aiming: 1
-	melee_shift.x: 2
-	melee_shift.y: -1
-	melee_aiming: 1
-	melee_reach: 6
-	melee_range: 13
-	melee_break_scale: 0
-	melee_extra_hits: 5
-	swoosh_particle1: 0x a0
-	swoosh_particle2: 0x a0
-	swoosh_range: 2
-	thrust_range: 3
-	swoosh_vel: 0.5
-	wielder_handler: ' slosh-handler
-	lightcooldown
+	shot_knockback: 1.5
+	shot_power: 2
+	lengthscale: 0.5
+	shoot_thru: 0
+	func: WEAPON_FUNC_SHOOT
+	stack_max: 300
+	wepscorebonus
+
+	: plasma-events args( me eventid )
+
+		<- eventid THING_EVENT_SHOOT = if
+			sfx{ -1 nextpri fm_sweep 50 ramp_start! 1000 1500 frnd 2 * ramp_end! 550 freq! 0 duty2! 0.1 duty!
+				2 a! 250 d!
+				0.9 q!
+				0.65 scale!
+				<- me .adjust-vol }
+			5 <- me .pos ticklight 0 0.5 1 lt .clr!
+
+			<- me .final-aim-angle <- me .flipx -5 * + anglexy 20 xymul <- me .pos xyadd 3 - <- me .breath -
+			particle{
+				new pos! 
+
+				particles_base_id 0x 59 + spriteid!
+//				<- me .swing_angle@ anglexy 16 xymul pos@ xyadd pos!
+				glowy
+				10 ticks!
+				2 scale!
+				0.65 grow!
+//				5 fade_out!
+				0.1 0.5 1 rgb!
+				0 360 frnd angle!
+			}
+
+		then;
+	;
+
+	wielder_handler: last
+
+
+: #plasmarifle plasmarifle .item.charges! ;
+root{ : plasmarifle 200 #plasmarifle ; }
+
+WEAPON_SHOTGUN clone-to: Double-barrel shotgun
+	weapon: dshotgun
+	spriteid: MELEE6 0x 3f +
+	projectiles: 8 ( per shell )
+	shell_count: 2
+	cock_sound: 2
+	boom_factor: 5
+	shot_power: 0.6
+	shot_knockback: 2.3
+	spread_factor: 6
+	cooldown: 0.6
+	shoot_thru: 0.2
+	reload: 1.3
+	power: 0.30
+	ammo_max: 60
+	
+WEAPON_MASONSAW clone-to: Chainsaw Hand
+	weapon: chainhand
+	spriteid: MELEE7 20 +
+	special_power: 0.8
+	burn_active: 60
+	burn_idle: 240
+	ammo_max: 30
+	// ammo_max doesn't seem to work for chainsaws (because it just uses carried fuel)
+	
+WEAPON_DSHOTGUN clone-to: Farmer's Shotgun
+	weapon: farmdshotgun
+	shot_power: 0.8
+	reload: 1
+
+custom: Bow
+	weapon: bow
+	spriteid: MELEE6 0x 39 +
+	chargename: Arrows
+	func: WEAPON_FUNC_CUSTOM_AIMING
+	melee_weapon_angle: 90
+	melee_windup_angle: -270
+	melee_start_angle: -180
+	melee_end_angle: -45
+	stack_max: 50
+	stack_as_charges: 1
+	melee_aiming: 0
+	power: 0.2
+	cooldown: 0
+	reload: 0.25
+	targeting: 0
+	lock_drift: 0.025
+	melee_range_hint: 100
+	melee_range_min_hint: 40
+
+	2 constant BOW_FRESH_DRAW // originally 3
+	30 BOW_FRESH_DRAW * constant BOW_DRAW_TIME // originally 15, for 45 DRAW_TIME total
+	20 constant BOW_COOLDOWN_TIME // originally 15
+
+	: .bow-cooldown-time BOW_COOLDOWN_TIME swap .fatigued? if 3 * then ; // was 4 before, but COOLDOWN_TIME was 15 before so it was the same 60 cooldown if fatigued
+
+	: fire-arrow args( me )
+		sfx{ pip 0 duty! freq@ 0.6 * freq2! 0.9 0.8 frnd 0.75 *  pitch! <- me .adjust-vol
+			2 a! 35 d! 0.2 s! 200 r!
+			scale@ 0.5 * scale!
+		}
+
+		bullet
+
+		-1 lt .anim.info!
+		<- me thing# lt .throwerid!
+		<- me .wielded_spriteid 2 + lt .spriteid!
+		-5 <- me .weapon_state.reach!
+		<- me .aim_angle@ lt .angle!
+		<- me .pos lt .angle@ anglexy 12 xymul xyadd lt .pos!
+
+		<- me .weapon_state.user@ BOW_DRAW_TIME / 15 * 30 + lt .anim.counter!
+
+		<- me .weapon_state.user@ BOW_DRAW_TIME / dup * 1.5 * 0.5 + lt .hitcheck.power! // Power (exponential)
+
+		lt .angle@ anglexy <- me .weapon_state.user@ BOW_DRAW_TIME / 2 * 2 + xymul lt .vel! // Speed
+		<- me .weapon_state.user@ BOW_DRAW_TIME / dup * ( dup msg ) lt .hitcheck.shoot_thru! // Pierce (exponential)
+
+		-2 <- me .breath - lt .pos.z!
+		lt .pos lt .pos.z@ +
+
+		0 <- me .weapon_state.user!
+
+		<- me .bow-cooldown-time <- me .action_cooldown!
+		<- me .useanammo
+	;
+
+	: animate-bow args( me )
+
+		<- me .weapon_state.user@ 0 > abs <- me .weapon_state.frame!
+		2 <- me .weapon_state.user@ 10 / + <- me .weapon_state.off.x!
+		<- me .weapon_state.user@ 0= if then;
+
+		<- me .isattack? not if <- me fire-arrow then;
+	;
+
+	: draw-arrow args( me )
+		gameticks 3 % 0= if 1 <- me .fatigue+ then // before used gameticks 1 & if , which is equal to 2 % 0=
+
+		<- me .weapon_state.user@ BOW_DRAW_TIME >= if
+//			<- me .fatigued? if
+//				<- me .vel 0.75 xymul <- me .vel! // Slow walking
+//			then
+		then;
+
+		<- me .fatigued? if 1 else BOW_FRESH_DRAW then
+			<- me .weapon_state.user@ + <- me .weapon_state.user!
+
+		<- me .weapon_state.user@ BOW_DRAW_TIME = if
+			<- me dup .fatigued? if .ugh else .hup then
+			-2 <- me .shudder! 
+		then;
+	;
+
+	:noname args( me eventid )
+		<- me .carryid@ if then;
+		<- me .anim.state@ if then;
+
+		<- eventid
+			THING_EVENT_ANIMATE ?( <- me animate-bow );
+
+			<- me .action_cooldown@ if then;
+
+			THING_EVENT_SHOOT ?( <- me draw-arrow );
+		drop
+	;
+
+	wielder_handler: last
+
+: #bow bow .item.charges! ;
+root{ : bow 20 36 rnd #bow ; }
+
+
+WEAPON_BOW clone-to: Cupid's Bow
+	weapon: cupidbow
+	spriteid: MELEE6 0x 5c +
+	stack_max: 60
+//	chargename: <3
+	RED "LOVE" .. WHITE .. chargename!
+
+: #cupidbow cupidbow .item.charges! ;
+root{ : cupidbow 60 #cupidbow ; }
+
+WEAPON_UPPERCUT clone-to: Bonesaw
+	weapon: bonesaw
+	spriteid: MELEE6 0x 5b +
+	power: 2
+	knockback: 0.4
+	cooldown: 1.2
 	wepscorebonus
 	
-// general ranged
+WEAPON_BLOWTORCH clone-to: Blowtorch XL
+	weapon: xlblowtorch
+	spriteid: MELEE1 0x 11 +
+	stack_max: 500
+
+: #xlblowtorch xlblowtorch .item.charges! ;
+root{ : xlblowtorch 500 #xlblowtorch ; }
+
+
+custom: Electric Chainsaw
+	3 constant YSHIFT
+	spriteid: MELEE7 32 +
+	weapon: echainsaw
+	chargename: Juice
+//	cooldown: 0.7
+	cooldown: 0
+	power: 0.3
+	melee_reach: 0
+	melee_shift.y: YSHIFT neg
+	melee_aiming: 0
+	melee_start_angle: -75
+	lock_drift: 0.03 // Formerly 0.03
+	targeting: 0
+	stack_max: 250
+	stack_as_charges: 1
+	reload: 0
+	0.8 custom_retract!
+
+	// Chainsaw
+
+	func: WEAPON_FUNC_CUSTOM_AIMING
+
+	: echainstrcheck .character@ STAT_STRENGTH swap .effstat 0.3 * 0.5 + 0 1 frnd > ;
+
+	: anim-spin args( me )
+
+		<- me .weapon_state.val@ 0.375 * <- me .weapon_state.reach!
+
+		// Spinning fast
+		<- me .weapon_state.val@ 5 > if
+
+			-1 1 frnd <- me .weapon_state.off.y!
+
+			gameticks 8 % not if 							// DAMAGE RATE (60 / 8 hits per second)
+				0.8 <- me .pos xyblast .hitcheck.power!		// DAMAGE AMOUNT, formerly 0.5
+				1 lt .hitcheck.mode!						// Don't hit players
+				8 lt .rad.x!
+
+				<- me .aim_angle@ anglexy 14 <- me .weapon_state.reach@ + xymul lt .pos xyadd lt .pos!
+				-1 lt .anim.substate! // Melee coloured blast
+			then
+
+			// ENERGY BURN RATES
+			gameticks 60 1 * % 0= if // Decrease every 1 seconds ( 60 ticks, chainsaw is 40 ticks )
+				-1 <- me .wielded-stack+
+			then
+
+			<- me .pos <- me .weapon_state.off.y@ - <- me .shudderxy@ xyadd <- me .pos.z@ + YSHIFT + -1.5 + <- me .breath -
+			<- me .vel xyadd <- me .vel.z@ +
+				particle{ new
+				pos!
+				0.5 clr.a!
+				1 ticks!
+				<- me .aim_angle@ } <- me .angle@ + particle{ angle!
+				angle@ anglexy 2 <- me .weapon_state.reach@ + xymul pos@ xyadd pos!
+				1 layer!
+
+				weapons_base_id MELEE7 + 31 + gameticks 1 >> 1 & + 2 + spriteid!
+			}
+
+			gameticks 1 & not if
+				sfx{ -6 nextpri pip 100 freq! 160 freq2! 0.975 duty!
+					500 <- me .weapon_state.val@ 100 * + filt!
+					500 <- me .weapon_state.val@ 50 * + filt_high!
+					55 a! 5 d! 0 s!
+					0.7 <- me .weapon_state.val@ 0.04 * q!
+					0.9 1 frnd 1.1 * <- me .weapon_state.val@ 0.1 * dup * + gameticks 3 & 0.1 * + pitch!
+					0.25 scale! <- me .adjust-vol
+				}
+			then
+
+		then // NO CHARGE USAGE FOR IDLING
+
+		// Rev down the engine
+		<- me .weapon_state.val@ 0.975 * <- me .weapon_state.val!
+		<- me .weapon_state.user@ <- me .weapon_state.val@ 5 * + 360 % <- me .weapon_state.user!
+	;
+
+	: anim-echain args( me )
+		<- me .weapon_state.angle_add@ 0.9 * <- me .weapon_state.angle_add!
+		<- me .weapon_state.info@ if <- me anim-spin then
+	;
+
+	: rev-echain args( me )
+		<- me .weapon_state.val@ 1 + 20 0 clamp <- me .weapon_state.val!
+	;
+
+	: run-echain args( me )
+		1 <- me .weapon_state.info! <- me rev-echain 
+	;
+
+	:noname args( me eventid )
+		<- me .carryid@ if then;
+		<- me .anim.state@ if then;
+
+		<- eventid
+			THING_EVENT_ANIMATE ?( <- me anim-echain );
+
+			<- me .action_cooldown@ if then;
+
+			THING_EVENT_SHOOT ?( <- me run-echain );
+		drop
+	;
+
+	wielder_handler: last
+
+: #echainsaw echainsaw .item.charges! ;
+root{ : echainsaw 250 #echainsaw ; }
+
+WEAPON_ECHAINSAW clone-to: Moody Chainsaw
+	weapon: moodysaw
+	spriteid: MELEE7 36 +
+	stack_max: 50
+	
+custom: Bazooka
+	30 constant BAZOOKA_COOLDOWN // Formerly 60
+	BAZOOKA_COOLDOWN 5 + constant ROCKET_TIME // Formerly 0
+
+	weapon: bazooka
+	// spriteid: MELEE6 0x 35 +
+	chargename: Rockets
+
+	ammo_type: 0
+	power: 1
+	cooldown: 0
+	targeting: 0
+	func: WEAPON_FUNC_CUSTOM_AIMING
+	melee_aiming: 0
+	reload: 0
+	lock_drift: 0.001
+
+	stack_max: 100
+	stack_as_charges: 1
+	stack_no_show: 0
+	shoot_thru_scale: 1
+//	ai_mule
+	lowestmelee
+
+	melee_start_angle: 0
+	melee_windup_angle: -90
+	melee_end_angle: 120
+
+	melee_aiming: 1
+	melee_weapon_angle: 0
+
+	melee_range_hint: 0
+	150 range_guess!
+
+	0.9 custom_retract!
+	heavycooldown
+
+	: rocket-events args( me eventid )
+		<- eventid
+			THING_EVENT_BOUNCE ?( <- me .vel.z@ 1.75 * <- me .vel.z! );
+
+			THING_EVENT_ANIMATE ?(
+				1 gameticks & if <- me .dust then
+				1 0.5 0 25 75 rnd <- me .pos d-light
+			);
+
+			THING_EVENT_WAS_HIT ?( 3 <- me .pause! 3 <- me .shudder! );
+			THING_EVENT_BUMP ?( 3 <- me .pause! 3 <- me .shudder! );
+			THING_EVENT_WALL ?( 3 <- me .pause! 3 <- me .shudder! );
+			THING_EVENT_LAND ?( 3 <- me .pause! 3 <- me .shudder! );
+
+			THING_EVENT_TIMER ?(
+				<- me .pos 5 xypowboom
+				<- me silentkillit
+			);
+
+		drop
+	;
+
+
+	: fire-rocket args( me )
+		spawn <- me lt-to-thing
+		weapons_base_id MELEE6 + 0x 36 + lt .spriteid! bcircle 7 lt .rad.x!
+		<- me .aim_angle@ lt .angle!
+		1 lt .walkover!
+		<- me thing# lt .throwerid!
+		10 lt .mass!
+		1 lt .no_hit!
+		1 lt .nopush!
+		1000 lt .hitpoints!
+		30 lt .anim.counter!
+		<- me .aim_angle@ anglexy 4 xymul lt .vel!
+		-4 lt .pos.z!
+		<- me .aim_angle@ anglexy 16 xymul lt .pos xyadd lt .pos!
+		lt .gravity@ 0.5 * lt .gravity!
+		-1 lt .vel.z!
+		0.5 lt .friction!
+		' rocket-events lt .events!
+		ROCKET_TIME lt .timer!
+
+		<- me .dust
+		<- me .dust
+		<- me .dust
+
+		3 for
+			lt .pos
+			particle{
+				new pos!
+				15 ticks!
+				<- me .aim_angle@ angle!
+				glowy
+				0.8 grow!
+				3 fade_out!
+				particles_base_id 0x 51 + spriteid!
+				i 45 * 90 - angle@ + anglexy 2 3 frnd xymul vel!
+				gameticks angle!
+				2 scale!
+				1 0.5 0 rgb!
+			}
+		next
+
+//		lt .vel -1 xymul <- me .vel xyadd <- me .vel!
+
+		5 lt .pos ticklight 1 0.5 0 lt .clr!
+
+		sfx{ noise 20 freq! 500 freq2! 100 a! 1000 d! 500 filt! 500 filt_high! 0.7 q! 2 scale! <- me .adjust-vol }
+
+		5 rumble
+
+		-25 <- me .shudder!
+		-15 <- me .weapon_state.reach!
+	;
+
+
+	:noname args( me eventid )
+		<- eventid THING_EVENT_ANIMATE = if
+			<- me .anim.state@ if then;
+		then;
+
+		<- me .action_cooldown@ if then;
+
+		<- eventid THING_EVENT_SHOOT = if
+			<- me fire-rocket
+			<- me .useanammo
+			BAZOOKA_COOLDOWN <- me .action_cooldown!
+		then;
+	;
+
+	wielder_handler: last
+
+root{
+: #bazooka bazooka .item.charges! ;
+: bazooka 30 #bazooka ; }
+
+WEAPON_BAZOOKA clone-to: Moody Launcher
+	weapon: moodyrocket
+	spriteid: MELEE7 39 +
+	stack_max: 10
+	
+	// FNF WEAPONS
+	
+	// general ranged
 	
 WEAPON_PISTOL clone-to: Beagle 44
 	spriteid: FNFGUNS
 	gun_muzzle_height: 2
 	boom_factor: 1.35
 	spread_factor: 1
-	shot_power: 2.35
+	shot_power: 2.43
 	reload: 0.58
 	cooldown: 0.5
 	power: 0.6
@@ -5037,69 +5319,63 @@ WEAPON_PISTOL clone-to: Beagle 44
 	shoot_thru: 0.15
 	shot_knockback: 1.5
 	ammo_max: 60
-	skill_angle_range: 35
+	skill_angle_range: 26
 	
-WEAPON_DOLT clone-to: Dolt 45
-	weapon: bkdolt
-	shot_power: 2.7
-	reload: 0.4
-	shoot_thru: 0.2
-	pointblank_near
-	skill_angle_range: 45
-	wepscorebonus
-	ammo_max: 120
-	
-WEAPON_BEAGLE clone-to: Beagle 44
-	weapon: bkbeagle
-	shot_power: 2.45
-	reload: 0.25
-	pointblank_near
-	skill_angle_range: 45
-	wepscorebonus
-	ammo_max: 120
-	
-WEAPON_BEAGLE clone-to: Beagle 50
-	weapon: juanbeag
+custom: Beagle 50
+	tags: juanmini
+	spriteid: FNFGUNS4 4 +
 	ammo_type: LOOT_RIFLE_SHELL
-	gun_muzzle_height: 2
-	auto_eject: 0
-	cock_sound: 2
-	boom_factor: 5
-	projectiles: 4
+	func: WEAPON_FUNC_SHOOT
+	gun_muzzle_height: 3
+	auto_eject: 1
+	cock_sound: 1
+	boom_factor: 1.5
 	spread_factor: 0
-	shot_power: 420
-	reload: 2.2
+	shot_power: 3.5
+	reload: 0.9
 	cooldown: 0.5
 	power: 0.6
 	knockback: 0.7
 	lengthscale: 0.5
-	shot_knockback: 5
-	ammo_max: 7
-	skill_angle_range: 35
-	shoot_thru: 1337
-	pointblank_far
-	no_ai_use: 1
+	shot_knockback: 3
+	ammo_max: 60
+	skill_angle_range: 38
+	shoot_thru: 0.3
+	melee_break_scale: 0
+	pointblank_mid
 	
-WEAPON_PISTOL clone-to: Military pistol
+mission{
+thing-event: juanmini-events
+	eventid THING_EVENT_SHOOT = if
+		me .aim_angle@ anglexy -0.45 xymul me .vel xyadd me .vel!
+		5 rumble
+	then
+;
+}
+wielder_handler: last
+	
+WEAPON_PISTOL clone-to: Armor-piercing pistol
 	weapon: milipistol
 	spriteid: FNFGUNS 1 +
 	gun_muzzle_height: 2
-	shot_power: 1.7
-	reload: 0.41
-	shoot_thru: 0.1
-	shot_knockback: 1.2
+	shot_power: 1.75
+	shoot_thru: 0.5
+	shoot_thru_scale: 1.5
+	shot_knockback: 1.6
+	skill_angle_range: 25
 	
 WEAPON_UZI clone-to: Machine pistol
 	weapon: tec
 	gun_muzzle_height: 4
 	spriteid: FNFGUNS 2 +
+	lengthscale: 0.5
 	boom_factor: 0.6
 	spread_factor: 3
 	shot_power: 0.97
 	reload: 0.07
-	shot_knockback: 1.2
+	shot_knockback: 1.1
 	shoot_thru: 0.1
-	shoot_thru_scale: 1
+	shoot_thru_scale: 0.7
 	ammo_max: 300
 	melee_break_scale: 0
 
@@ -5117,43 +5393,25 @@ WEAPON_TEC clone-to: Super machine pistol
 	melee_reach: -16
 	shot_knockback: 1.45
 	shoot_thru: 0.2
+	skill_angle_range: 10
 	ammo_max: 250
 	melee_break_scale: 0
 	pointblank_mid
 	
-custom: Bullpup carbine
-	tags: bullcarbine
-	spriteid: FNFGUNS 4 +
-	gun_muzzle_height: 2
-	ammo_type: LOOT_BULLET
-	boom_factor: 1.3
-	spread_factor: 2.3
-	shot_power: 1.35
-	reload: 0.165
-	cooldown: 0.75
-	power: 0.40
-	knockback: 1
-	shoot_thru: 0.1
-	shoot_thru_scale: 1
-	shot_knockback: 2
-	ammo_max: 150
-	func: WEAPON_FUNC_SHOOT
-	skill_angle_range: 22
-	melee_break_scale: 0
-	pointblank_mid
-	
-WEAPON_UZI clone-to: Heavy SMG
+WEAPON_UZI clone-to: Heavy Sub-machinegun
 	weapon: hsmg
 	spriteid: FNFGUNS 5 +
 	boom_factor: 1.5
-	spread_factor: 2
-	shot_power: 1.5
+	spread_factor: 1.5
+	shot_power: 1.55
 	reload: 0.2
 	power: 0.85
-	shoot_thru: 0.2
-	shot_knockback: 2
+	shoot_thru: 0.15
+	shoot_thru_scale: 0.75
+	shot_knockback: 1.8
 	ammo_max: 120
 	melee_break_scale: 0
+	skill_angle_range: 31
 	
 WEAPON_UZI clone-to: Timmy gun
 	weapon: vsmg
@@ -5161,51 +5419,57 @@ WEAPON_UZI clone-to: Timmy gun
 	spriteid: FNFGUNS 6 +
 	boom_factor: 1.1
 	spread_factor: 4
-	shot_power: 1.1
-	reload: 0.9
+	shot_power: 1.13
+	reload: 0.09
 	power: 0.8
 	knockback: 1.1
 	melee_windup_angle: 0
 	melee_end_angle: 225
 	melee_reach: -16
-	shoot_thru: 0.1
+	shoot_thru: 0.13
 	shoot_thru_scale: 0.5
-	shot_knockback: 2.2
+	shot_knockback: 1.85
+	skill_angle_range: 31
 	ammo_max: 200
 	melee_break_scale: 0
 	
-WEAPON_SHOTGUN clone-to: Lever action shotgun
+WEAPON_UZI clone-to: Silenced Sub-machinegun
+	weapon: psmg
+	gun_muzzle_height: 2
+	spriteid: FNFGUNS4
+	boom_factor: 0
+	spread_factor: 2.25
+	shot_power: 1.1
+	reload: 0.1
+	power: 0.65
+	knockback: 0.85
+	melee_windup_angle: 0
+	melee_end_angle: 225
+	melee_reach: -16
+	shoot_thru: 0.1
+	shoot_thru_scale: 0.5
+	shot_knockback: 1.35
+	skill_angle_range: 6
+	ammo_max: 180
+	melee_break_scale: 0
+	
+WEAPON_SHOTGUN clone-to: Lever shotgun
 	weapon: levshotty
 	spriteid: FNFGUNS 7 +
 	gun_muzzle_height: 2
 	ammo_type: LOOT_SHOTGUN_SHELL
 	boom_factor: 2.5
-	shot_power: 0.6
-	spread_factor: 2.5
-	reload: 0.8
+	shot_power: 0.4
+	spread_factor: 2
+	reload: 0.65
 	projectiles: 4
-	shot_knockback: 2
+	shot_knockback: 1.6
 	lengthscale: 0.5
-	shoot_thru: 0.25
+	shoot_thru: 0.2
+	shoot_thru_scale: 1.25
 	ammo_max: 50
-	skill_angle_range: 35
+	skill_angle_range: 28
 	pointblank_mid
-	
-WEAPON_SHOTGUN clone-to: Double-barreled shotgun
-	weapon: dbshotty
-	spriteid: FNFGUNS 8 +
-	gun_muzzle_height: 2
-	cock_sound: 1
-	boom_factor: 3.5
-	shot_power: 0.6
-	spread_factor: 4.5
-	revolver: 2
-	reload: 0.45
-	projectiles: 3
-	shot_knockback: 2
-	lengthscale: 0.5
-	ammo_max: 60
-	skill_angle_range: 20
 
 WEAPON_AUTOSHOT clone-to: Full auto shotgun
 	weapon: aashotty
@@ -5220,47 +5484,34 @@ WEAPON_AUTOSHOT clone-to: Full auto shotgun
 	ammo_max: 150
 	skill_angle_range: 25
 	
-custom: LEVER DAWG
-	weapon: leverdawg
-	spriteid: FNFGUNS 10 +
-	gun_muzzle_height: 2
-	ammo_type: LOOT_SHOTGUN_SHELL
-	cock_sound: 2
-	boom_factor: 3.3
-	shot_power: 0.84
-	spread_factor: 3.125
-	cooldown: 0.75
-	reload: 1.12
-	power: 0.40
-	knockback: 1
-	projectiles: 5
-	func: WEAPON_FUNC_SHOOT
-	lengthscale: 0.5
-	melee_windup_angle: 0
-	melee_end_angle: 225
-	melee_reach: -16
-	shoot_thru: 0.25
-	shot_knockback: 5.3
-	ammo_max: 50
-	melee_break_scale: 0
-	skill_angle_range: 30
-	pointblank_mid
+mission{
+
+thing-event: aashotty-events
+	eventid THING_EVENT_SHOOT = if
+		6 rumble
+		me .aim_angle@ anglexy -0.35 xymul me .vel xyadd me .vel!
+	then;
+
+; }
+
+wielder_handler: last
 	
-WEAPON_AK47 clone-to: Antique rifle
+WEAPON_AK47 clone-to: Semi-auto rifle
 	weapon: semirifle
 	spriteid: FNFGUNS 11 +
 	boom_factor: 1.75
 	shot_power: 2.25
 	cooldown: 1
-	reload: 0.5
+	reload: 0.55
 	power: 0.6
 	shoot_thru: 0.15
+	shoot_thru_scale: 0.65
 	shot_knockback: 1.2
 	auto_eject: 1
 	ammo_max: 75
 	melee_range: -5
-	skill_angle_range: 20
-	pointblank_far
+	skill_angle_range: 45
+	pointblank_mid
 	
 custom: Obrez
 	spriteid: FNFGUNS 12 +
@@ -5275,11 +5526,12 @@ custom: Obrez
 	power: 0.40
 	knockback: 0.5
 	func: WEAPON_FUNC_SHOOT
-	shoot_thru: 0.2
-	shot_knockback: 1.5
+	shoot_thru: 0.17
+	shoot_thru_scale: 0.5
+	shot_knockback: 1.2
 	ammo_max: 50
 	melee_break_scale: 0
-	skill_angle_range: 20
+	skill_angle_range: 25
 	badmelee
 	pointblank_near
 	
@@ -5290,7 +5542,7 @@ WEAPON_AK47 clone-to: Carbine rifle
 	boom_factor: 1.75
 	spread_factor: 2
 	shot_power: 1.9
-	reload: 0.15
+	reload: 0.135
 	shot_knockback: 1.5
 	
 WEAPON_AK47 clone-to: Police carbine
@@ -5300,9 +5552,10 @@ WEAPON_AK47 clone-to: Police carbine
 	boom_factor: 1.5
 	spread_factor: 0.5
 	shot_power: 2.65
-	reload: 0.25
-	shot_knockback: 2
-	pointblank_near
+	reload: 0.275
+	shot_knockback: 2.5
+	shoot_thru: 0.175
+	shoot_thru_scale: 0.75
 	
 custom: Repeater rifle
 	tags: leverrifle
@@ -5332,15 +5585,16 @@ custom: Repeater rifle
 	badmelee
 	pointblank_near
 	
+// FNF TODO - balancing
 custom: Heavy machine gun
 	tags: M60
 	spriteid: FNFGUNS2
 	gun_muzzle_height: 3
 	ammo_type: LOOT_RIFLE_SHELL
 	boom_factor: 4
-	spread_factor: 3
-	shot_power: 3.5
-	reload: 0.2
+	spread_factor: 3.5
+	shot_power: 3
+	reload: 0.25
 	cooldown: 1
 	power: 0.5
 	knockback: 2
@@ -5348,14 +5602,28 @@ custom: Heavy machine gun
 	melee_windup_angle: -190
 	melee_end_angle: 90
 	melee_reach: 0
-	shoot_thru: 0.35
+	shoot_thru: 0.27
+	shoot_thru_scale: 1.3
 	shot_knockback: 6
+	skill_angle_range: 45
 	ammo_max: 200
 	func: WEAPON_FUNC_SHOOT
 	melee_break_scale: 0
 	pointblank_mid
 	
-custom: Sniper rifle
+mission{
+
+thing-event: m60-events
+	eventid THING_EVENT_SHOOT = if
+		11 rumble
+		me .aim_angle@ anglexy -0.85 xymul me .vel xyadd me .vel!
+	then;
+
+; }
+
+wielder_handler: last
+	
+custom: Military sniper
 	tags: awp
 	spriteid: FNFGUNS2 1 +
 	gun_muzzle_height: 3
@@ -5365,23 +5633,24 @@ custom: Sniper rifle
 	shot_power: 6
 	spread_factor: 0
 	cooldown: 1
-	reload: 2.5
+	reload: 1.5
 	power: 0.40
 	knockback: 1
-	projectiles: 3
 	func: WEAPON_FUNC_SHOOT
 	melee_windup_angle: 0
 	melee_end_angle: 225
 	melee_reach: -16
-	shoot_thru: 0.35
+	shoot_thru: 0.33
+	shoot_thru_scale: 1.4
 	shot_knockback: 4
 	ammo_max: 50
 	melee_break_scale: 0
 	melee_range: -5
-	skill_angle_range: 22
+	skill_angle_range: 35
 	badmelee
 	pointblank_far
-	
+
+// FNF TODO - balancing
 custom: Vintage machine gun
 	tags: vlmg
 	spriteid: FNFGUNS3 7 +
@@ -5389,7 +5658,7 @@ custom: Vintage machine gun
 	ammo_type: LOOT_RIFLE_SHELL
 	boom_factor: 2.5
 	spread_factor: 4
-	shot_power: 1.5
+	shot_power: 1.65
 	reload: 0.07
 	cooldown: 1.5
 	power: 0.5
@@ -5398,139 +5667,44 @@ custom: Vintage machine gun
 	melee_windup_angle: -190
 	melee_end_angle: 90
 	melee_reach: 0
-	shoot_thru: 0.2
+	shoot_thru: 0.1
 	shot_knockback: 3
 	ammo_max: 600
 	func: WEAPON_FUNC_SHOOT
-	skill_angle_range: 22
-	shoot_thru_scale: 1
+	skill_angle_range: 20
+	shoot_thru_scale: 0.5
 	melee_break_scale: 0
-	pointblank_mid
-	
-custom: DINNER LUNCHER
-	weapon: fuderpower
-	spriteid: FNFGUNS2 11 +
-	ammo_type: LOOT_FOOD
-	gun_muzzle_height: 2
-	spread_factor: 0
-	shot_power: 1
-	lengthscale: 0.5
-	boom_factor: 3
-	cooldown: 0.75
-	power: 0.40
-	knockback: 1
-	melee_windup_angle: 0
-	melee_end_angle: 225
-	melee_reach: -16
-	
-	shoot_thru: 0.1
-	shot_knockback: 1
-	projectiles: 0
-	func: WEAPON_FUNC_SHOOT
-	auto_eject: 1
-	ammo_max: 50
-	
-	melee_break_scale: 0
-	skill_angle_range: 10
-	pointblank_mid
-	reload: 0.25
+	pointblank_near
 	
 mission{
 
-	: launchfood-events args( me eventid )
-		<- eventid
-		
-			THING_EVENT_BOUNCE ?( 200 <- me .timer! );
-			
-			THING_EVENT_TIMER ?( <- me silentkillit );
-
-			THING_EVENT_WAS_HIT ?( <- me .smack );
-			
-			
-		drop
-	;
-
-	: fire-launchfood args( me )
-		spawn me lt-to-thing
-		weapons_base_id FNFGUNS2 + 12 16 frnd + lt .spriteid! bcircle 3 lt .rad.x!
-		1 lt .walkover!
-		me thing# lt .throwerid!
-		10 lt .mass!
-		1 lt .no_hit!
-		1 lt .nopush!
-		5 lt .hitpoints!
-		30 lt .anim.counter!
-		0.85 lt .friction!
-		0.85 lt .bounce_friction!
-		me .aim_angle@ 20 -20 frnd + dup angle! anglexy 5 7 frnd xymul lt .vel!
-		-4 lt .pos.z!
-		-15 -10 frnd 0.1 * lt .vel.z!
-		me .aim_angle@ 0 4 frnd 90 * + dup angle! lt .angle!
-		me .aim_angle@ anglexy 16 xymul lt .pos xyadd lt .pos!
-		' launchfood-events lt .events!
-		me .dust
-
-		1 for
-			lt .pos
-			particle{
-				new pos!
-				15 ticks!
-				me .aim_angle@ angle!
-				glowy
-				0.8 grow!
-				3 fade_out!
-				particles_base_id 0x 51 + spriteid!
-				1 3 frnd 45 * 90 - angle@ + anglexy 2 3 frnd xymul vel!
-				gameticks angle!
-				1 scale!
-				1 0.5 0 rgb!
-			}
-		next
-
-		lt .vel -0.05 xymul me .vel xyadd me .vel!
-
-	;
-
-thing-event: fuderpower-events
-	
-	eventid THING_EVENT_ANIMATE = if
-		me .anim.state@ if then;
-	then;
-	
+thing-event: vlmg-events
 	eventid THING_EVENT_SHOOT = if
-	6 for
-		me fire-launchfood
-	next
+		me .aim_angle@ anglexy -0.14 xymul me .vel xyadd me .vel!
 	then;
 
 ; }
 
 wielder_handler: last
 
-} : fuderpower fuderpower mission{ ' fuderpower-events } ; weapondef{
-
 WEAPON_SHOTGUN clone-to: Flame shotgun
 	tags: flameshot
-	spriteid: FNFGUNS2 9 +
+	spriteid: FNFGUNS2 6 +
 	cock_sound: 2
 	cooldown: 0.75
 	power: 0.40
 	knockback: 1
+	reload: 1
 	projectiles: 0
-	ammo_max: 30
+	ammo_max: 35
 	gun_muzzle_height: 3
 	ammo_type: LOOT_SHOTGUN_SHELL
 	boom_factor: 3
-	shot_power: 0.5
-	spread_factor: 4
-	projectiles: 0
 	func: WEAPON_FUNC_SHOOT
 	lengthscale: 0.5
 	melee_windup_angle: 0
 	melee_end_angle: 225
 	melee_reach: -16
-	shoot_thru: 0.1
-	shot_knockback: 1.5
 	melee_break_scale: 0
 	skill_angle_range: 25
 	pointblank_near
@@ -5558,13 +5732,13 @@ mission{
 		me thing# lt .throwerid!
 		1 lt .no_hit!
 		1 lt .nocollide!
-		4 lt .timer!
+		6 lt .timer!
 		3 lt .burning!
 		100 lt .flammability!
 		10000 lt .hitpoints!
 		0.5 lt .friction!
 		0.5 lt .bounce_friction!
-		me .aim_angle@ -30 30 frnd + anglexy 4 xymul lt .vel!
+		me .aim_angle@ -30 30 frnd + anglexy 2.5 xymul lt .vel!
 		-4 lt .pos.z!
 		0 lt .vel.z!
 		0 lt .gravity!
@@ -5618,12 +5792,12 @@ thing-event: flameshot-events
 	then;
 	
 	eventid THING_EVENT_SHOOT = if
-		5 for
 			sfx{
 				noise me .adjust-vol 100 a! 0.5 0.75 frnd pitch!
 				50 500 frnd filt!
 				0 0.5 q!
 			}
+		4 for
 			me fire-flame
 		next
 		
@@ -5638,7 +5812,7 @@ weapondef{
 	
 custom: Flare gun
 	weapon: flaregun
-	spriteid: FNFGUNS2 6 +
+	spriteid: FNFGUNS2 3 +
 	chargename: Flares
 	gun_muzzle_height: 2
 	spread_factor: 0
@@ -5658,23 +5832,52 @@ custom: Flare gun
 	stack_as_charges: 1
 	stack_max: 4
 	reload: 2
-	no_ai_use: 1
+	ai_mule
+	
 	
 mission{
 
 	: flare-events args( me eventid )
 		<- eventid
 			
-			THING_EVENT_TIMER ?( 		
-			0.8 0.2 0.2 <- me .anim.counter@ 3000 / 90 * sin 200 250 frnd * <- me .pos d-light
-			sfx{ -5 nextpri noise 50 a! 5 d! 0.75 1 frnd 20 * pitch! 0.2 <- me .anim.counter@ 3000 / 90 * sin * 0.05 + scale! 1500 filt_high! }
+			THING_EVENT_TIMER ?(
+			// <- me .anim.counter@ 1990 > if
+				// 1 <- me .weapon_state.frame!
+			// then
+			0.8 0.2 0.2 <- me .anim.counter@ 2000 / 90 * sin 75 125 frnd * 40 + <- me .pos <- me .angle@ 90 - 90 <- me .flip@ flipx * - anglexy 3 xymul xyadd d-light
+			<- me .anim.counter@ 2 % 0= if
+				1 for
+					<- me .pos3
+					particle{ new pos3! }
+					<- me .angle@ 90 - 90 <- me .flip@ flipx * - anglexy 3 xymul
+					particle{ pos@ xyadd pos!
+						20 ticks!
+						glowy
+						0.95 grow!
+						7 fade_out!
+						particles_base_id 0x 51 + spriteid!
+						-20 20 frnd angle@ + anglexy 0.25 0.6 frnd <- me .anim.counter@ 2000 / 90 * sin 1.25 * + 0.5 * xymul vel!
+						<- me .anim.counter@ 2000 / 90 * sin 0.35 * 0.9 + 0.25 * scale!
+						1 0.2 0.2 rgb!
+					}
+				next
+			then
+			sfx{ -10 nextpri noise 25 a! 5 d! 0.75 1 frnd 20 * pitch! 0.15 <- me .anim.counter@ 2000 / 90 * sin * 0.02 + scale! <- me .adjust-vol 1500 filt_high! <- me .pos xy-vol }
 			<- me .anim.counter@ 1 < if 
 				<- me silentkillit 
 			then;
 			1 <- me .timer!
 			);
-
-			THING_EVENT_WAS_HIT ?( <- me .smack );
+			THING_EVENT_WAS_HIT ?( <- me .smack <- me .vel.x@ 0.9 * <- me .vel.x! <- me .vel.y@ 0.9 * <- me .vel.y! );
+			THING_EVENT_OVERLAP ?(
+				<- me .overlap_id@ #thing dup .hitpoints@ 0 > if 
+					0.05 swap .try2burn 
+				else 
+					<- me .overlap_id@ #thing dup .typeid@ THING_HUMAN = if 
+						0.05 swap .try2burn 
+					then
+				then
+			);
 			
 			
 		drop
@@ -5682,17 +5885,15 @@ mission{
 
 	: fire-flare args( me )
 		spawn me lt-to-thing
-		weapons_base_id FNFGUNS2 + 7 + lt .spriteid! bcircle 7 lt .rad.x!
+		weapons_base_id FNFGUNS2 + 4 + lt .spriteid! bcircle 4.5 lt .rad.x!
 		1 lt .walkover!
 		me thing# lt .throwerid!
 		1 lt .mass!
 		1 lt .no_hit!
 		1 lt .nopush!
 		1 lt .timer!
-		100000 lt .hitpoints!
-		3000 lt .anim.counter!
-		3 lt .burning!
-		100 lt .flammability!
+		500 lt .hitpoints!
+		2000 lt .anim.counter!
 		0.5 lt .friction!
 		0.5 lt .bounce_friction!
 		me .aim_angle@ anglexy 4 xymul lt .vel!
@@ -5749,7 +5950,7 @@ weapondef{
 
 custom: Portable grenade launcher
 	weapon: doublelauncher
-	spriteid: FNFGUNS2 8 +
+	spriteid: FNFGUNS2 5 +
 	chargename: Grenades
 	gun_muzzle_height: 2
 	spread_factor: 0
@@ -5774,9 +5975,9 @@ custom: Portable grenade launcher
 	skill_angle_range: 10
 	pointblank_far
 	stack_as_charges: 1
-	stack_max: 2
+	stack_max: 4
 	reload: 2
-	no_ai_use: 1
+	ai_mule
 	targeting: 0
 	
 mission{
@@ -5823,7 +6024,7 @@ mission{
 
 		lt .vel -0.5 xymul me .vel xyadd me .vel!
 		
-		sfx{ thump 110 freq! 0.2 s! 500 r! 1000 filt! 0.9 q! 2.5 scale! <- me .adjust-vol }
+		sfx{ thump 150 freq! 0.2 s! 500 r! 1000 filt! 0.9 q! 1.6 scale! <- me .adjust-vol }
 		
 		5 lt .pos ticklight 1 00.5 0 lt .clr!
 		
@@ -5846,9 +6047,9 @@ thing-event: doublelauncher-events
 wielder_handler: last
 
 } : #doublelauncher doublelauncher weapondef{ .item.charges! } ;
-: doublelauncher 2 #doublelauncher ;
+: doublelauncher 4 #doublelauncher ;
 weapondef{
-custom: Quad rocket launcher
+custom: Anti-tank rocket
 	weapon: quadlauncher
 	spriteid16x32: 16
 	chargename: Rockets
@@ -5858,9 +6059,11 @@ custom: Quad rocket launcher
 	lengthscale: 0.5
 	boom_factor: 4
 	
-	cooldown: 0.75
+	cooldown: 0.63
 	power: 0.5
-	knockback: 2
+	knockback: 0.80
+	melee_fatigue_scale: 1.5
+	heavycooldown
 	melee_start_angle: -100
 	melee_windup_angle: -190
 	melee_end_angle: 90
@@ -5876,9 +6079,9 @@ custom: Quad rocket launcher
 	skill_angle_range: 10
 	pointblank_far
 	stack_as_charges: 1
-	stack_max: 4
-	reload: 2
-	no_ai_use: 1
+	stack_max: 6
+	reload: 0.75
+	ai_mule
 	targeting: 0
 	
 mission{
@@ -5886,14 +6089,14 @@ mission{
 	: launchrocket-events args( me eventid )
 		<- eventid
 		
-			THING_EVENT_WALL ?( <- me .pos 7 xypowboom <- me silentkillit );
+			THING_EVENT_WALL ?( <- me .pos 5 xypowboom <- me silentkillit );
 			
 			THING_EVENT_TIMER ?( 
 				sfx{ -5 nextpri noise 50 a! 5 d! 0.55 0.6 frnd 20 * pitch! 0.25 scale! 1500 filt_high! }
 				<- me .dust 
 				1 <- me .timer!
 				<- me .anim.counter@ 1 < if
-					<- me .pos 7 xypowboom <- me silentkillit 
+					<- me .pos 7.5 xypowboom <- me silentkillit 
 				then;
 			);
 
@@ -5905,7 +6108,7 @@ mission{
 
 	: fire-launchrocket args( me )
 		spawn me lt-to-thing
-		weapons_base_id FNFGUNS2 + 10 + lt .spriteid! bcircle 3 lt .rad.x!
+		weapons_base_id FNFGUNS2 + 7 + lt .spriteid! bcircle 3 lt .rad.x!
 		1 lt .walkover!
 		me thing# lt .throwerid!
 		1 lt .mass!
@@ -5941,11 +6144,14 @@ mission{
 				i 45 * 90 - angle@ + anglexy 2 3 frnd xymul vel!
 				gameticks angle!
 				2 scale!
+			  
+				 
 				1 0.5 0 rgb!
+					 
 			}
 		next
 
-		lt .vel -0.4 xymul me .vel xyadd me .vel!
+		lt .vel -0.6 xymul me .vel xyadd me .vel!
 		
 		sfx{ thump 140 freq! 0.2 s! 500 r! 1000 filt! 0.9 q! 2 scale! <- me .adjust-vol }
 		
@@ -5970,12 +6176,12 @@ thing-event: quadlauncher-events
 wielder_handler: last
 
 } : #quadlauncher quadlauncher weapondef{ .item.charges! } ;
-: quadlauncher 4 #quadlauncher ;
+: quadlauncher 6 #quadlauncher ;
 weapondef{
 custom: PANZERPOOT
 	weapon: panzerpoot
 	spriteid: FNFGUNS3
-	chargename: Raketes
+	chargename: Rockets
 	gun_muzzle_height: 2
 	spread_factor: 0
 	shot_power: 1
@@ -6000,9 +6206,9 @@ custom: PANZERPOOT
 	skill_angle_range: 10
 	pointblank_far
 	stack_as_charges: 1
-	stack_max: 1
+	stack_max: 2
 	reload: 2
-	no_ai_use: 1
+	ai_mule
 	targeting: 0
 	
 mission{
@@ -6029,26 +6235,9 @@ mission{
 			
 		drop
 	;
-
-	: fire-launchpanzer args( me )
-		spawn me lt-to-thing
-		weapons_base_id FNFGUNS3 + 1 + lt .spriteid! bcircle 3 lt .rad.x!
-		1 lt .walkover!
-		me thing# lt .throwerid!
-		10 lt .mass!
-		1 lt .no_hit!
-		1 lt .nopush!
-		1000 lt .hitpoints!
-		300 lt .anim.counter!
-		1 lt .timer!
-		0.8 lt .friction!
-		0.8 lt .bounce_friction!
-		me .aim_angle@ anglexy 5.5 xymul lt .vel!
-		-4 lt .pos.z!
-		0 lt .gravity!
-		me .aim_angle@ lt .angle!
-		me .aim_angle@ anglexy 16 xymul lt .pos xyadd lt .pos!
-		' launchpanzer-events lt .events!
+	
+	
+	: launchpanzer-effects args( me )
 		me .dust
 		me .dust
 		
@@ -6074,6 +6263,24 @@ mission{
 		}
 		next
 		
+		me .aim_angle@ anglexy -24 xymul me .pos xyadd 17 things-in-xyrad
+				depths for 
+					-1 picks dup .hitpoints@ 0 > if
+						1 swap .try2burn
+						-1 picks dup .hitpoints@ 3 - swap .hitpoints!
+						// -1 picks dup .vel lt .vel -0.9 xymul xyadd .vel!
+					else
+						drop
+						-1 picks dup .typeid@ THING_HUMAN = if
+							1 swap .try2burn
+							-1 picks dup .character@ .health@ 1 - swap .character@ .health!
+							-1 picks .report-health
+							sfx{ bite -1 picks .adjust-vol }
+						then
+					then
+					pops drop
+				next drop
+				
 		6 for
 			me .aim_angle@ anglexy -21 xymul me .pos xyadd -4
 			particle{
@@ -6112,13 +6319,31 @@ mission{
 				1 0.5 0 rgb!
 			}
 		next
+	;
+
+	: fire-launchpanzer args( me )
+		spawn me lt-to-thing
+		weapons_base_id FNFGUNS3 + 1 + lt .spriteid! bcircle 3 lt .rad.x!
+		1 lt .walkover!
+		me thing# lt .throwerid!
+		10 lt .mass!
+		1 lt .no_hit!
+		1 lt .nopush!
+		1000 lt .hitpoints!
+		300 lt .anim.counter!
+		1 lt .timer!
+		0.8 lt .friction!
+		0.8 lt .bounce_friction!
+		me .aim_angle@ anglexy 5.5 xymul lt .vel!
+		-4 lt .pos.z!
+		0 lt .gravity!
+		me .aim_angle@ lt .angle!
+		me .aim_angle@ anglexy 16 xymul lt .pos xyadd lt .pos!
+		' launchpanzer-events lt .events!
 
 		lt .vel -0.9 xymul me .vel xyadd me .vel!
-		
 		sfx{ thump 70 freq! 0.2 s! 500 r! 1000 filt! 0.9 q! 4 scale! <- me .adjust-vol }
-		
 		5 lt .pos ticklight 1 00.5 0 lt .clr!
-		
 		35 rumble
 
 	;
@@ -6134,7 +6359,6 @@ mission{
 			);
 			
 			THING_EVENT_BOUNCE ?( 105 <- me .anim.counter! <- me .dust );
-			
 			
 		drop
 	;
@@ -6157,70 +6381,7 @@ mission{
 		me .aim_angle@ lt .angle!
 		me .aim_angle@ anglexy 16 xymul lt .pos xyadd lt .pos!
 		' launchpoot-events lt .events!
-		me .dust
-		me .dust
 		1 "poot" me .reportdur
-		
-		10 for
-			me .aim_angle@ anglexy 16 xymul me .pos xyadd -4
-			particle{
-				new pos3!
-				particles_base_id 0x 2c + spriteid!
-				0.25 1 frnd 8 * pos.x@ + pos.x!
-				-1 1 frnd 8 * pos.y@ + pos.y!
-				-0.25 -0.5 frnd vel.z!
-				rndsign 2 * rotate!
-				0.98 grow!
-				1.5 2.3 frnd scale!
-				25 fade_in!
-				55 fade_out!
-				80 0 15 frnd + ticks!
-				0.45 0.55 frnd clr.r!
-				clr.r@ clr.g!
-				clr.r@ clr.b!
-				0.25 -0.25 frnd vel.x!
-				i 2 * wait!
-		}
-		next
-		
-		6 for
-			me .aim_angle@ anglexy -21 xymul me .pos xyadd -4
-			particle{
-				new pos3!
-				particles_base_id 0x 2c + spriteid!
-				0.25 1 frnd 8 * pos.x@ + pos.x!
-				-1 1 frnd 8 * pos.y@ + pos.y!
-				-0.25 -0.5 frnd vel.z!
-				rndsign 2 * rotate!
-				0.98 grow!
-				1.5 2.3 frnd scale!
-				25 fade_in!
-				55 fade_out!
-				80 0 15 frnd + ticks!
-				0.45 0.55 frnd clr.r!
-				clr.r@ clr.g!
-				clr.r@ clr.b!
-				0.25 -0.25 frnd vel.x!
-				i 2 * wait!
-		}
-		next
-
-		3 for
-			lt .pos
-			particle{
-				new pos!
-				15 ticks!
-				me .aim_angle@ angle!
-				glowy
-				0.8 grow!
-				3 fade_out!
-				particles_base_id 0x 51 + spriteid!
-				i 45 * 90 - angle@ + anglexy 2 3 frnd xymul vel!
-				gameticks angle!
-				2 scale!
-				1 0.5 0 rgb!
-			}
-		next
 		
 		5 rumble
 		
@@ -6236,7 +6397,6 @@ mission{
 		}
 
 		lt .vel -0.1 xymul me .vel xyadd me .vel!
-
 		5 lt .pos ticklight 1 00.5 0 lt .clr!
 
 	;
@@ -6248,6 +6408,7 @@ thing-event: panzerpoot-events
 	then;
 	
 	eventid THING_EVENT_SHOOT = if
+		me launchpanzer-effects
 		25 %chance if
 			15 me .shudder!
 			me fire-launchpoot
@@ -6262,7 +6423,7 @@ thing-event: panzerpoot-events
 wielder_handler: last
 
 } : #panzerpoot panzerpoot weapondef{ .item.charges! } ;
-: panzerpoot 1 #panzerpoot ;
+: panzerpoot 2 #panzerpoot ;
 weapondef{
 custom: Quad laser
 	weapon: quadlaser
@@ -6287,7 +6448,7 @@ custom: Quad laser
 	stack_as_charges: 1
 	stack_max: 3
 	reload: 0.7
-	no_ai_use: 1
+	ai_mule
 	targeting: 0
 	
 mission{
@@ -6380,6 +6541,1308 @@ thing-event: quadlaser-events
 } : #quadlaser quadlaser weapondef{ .item.charges! } ;
 : quadlaser 3 #quadlaser ;
 weapondef{
+
+custom: DINNER LUNCHER
+	weapon: fuderpower
+	spriteid: FNFGUNS2 8 +
+	ammo_type: LOOT_FOOD
+	gun_muzzle_height: 2
+	spread_factor: 0
+	shot_power: 1
+	lengthscale: 0.5
+	boom_factor: 3
+	cooldown: 0.75
+	power: 0.40
+	knockback: 1
+	melee_windup_angle: 0
+	melee_end_angle: 225
+	melee_reach: -16
+	
+	shoot_thru: 0.1
+	shot_knockback: 1
+	projectiles: 0
+	func: WEAPON_FUNC_SHOOT
+	auto_eject: 1
+	ammo_max: 50
+	
+	melee_break_scale: 0
+	skill_angle_range: 10
+	pointblank_mid
+	reload: 0.25
+	
+mission{
+
+	: launchfood-events args( me eventid )
+		<- eventid
+		
+			THING_EVENT_BOUNCE ?( 200 <- me .timer! );
+			
+			THING_EVENT_TIMER ?( <- me silentkillit );
+										  
+
+			THING_EVENT_WAS_HIT ?( <- me .smack );
+			
+			
+		drop
+	;
+
+	: fire-launchfood args( me )
+		spawn me lt-to-thing
+		weapons_base_id FNFGUNS2 + 9 16 frnd + lt .spriteid! bcircle 3 lt .rad.x!
+		1 lt .walkover!
+		me thing# lt .throwerid!
+		20 lt .mass!
+		1 lt .no_hit!
+		1 lt .nopush!
+		5 lt .hitpoints!
+		30 lt .anim.counter!
+		0.85 lt .friction!
+		0.85 lt .bounce_friction!
+		me .aim_angle@ 27 -27 frnd + dup angle! anglexy 5 7 frnd xymul lt .vel!
+		-4 lt .pos.z!
+		-20 -15 frnd 0.1 * lt .vel.z!
+		me .aim_angle@ 0 4 frnd 90 * + dup angle! lt .angle!
+		me .aim_angle@ anglexy 16 xymul lt .pos xyadd lt .pos!
+		' launchfood-events lt .events!
+
+		lt .vel -0.05 xymul me .vel xyadd me .vel!
+
+	;
+
+thing-event: fuderpower-events
+	
+	eventid THING_EVENT_ANIMATE = if
+		me .anim.state@ if then;
+	then;
+	
+	// FNF TODO - make sure this looks alright.
+	eventid THING_EVENT_SHOOT = if
+		3 for
+			me .pos
+			particle{
+				new pos!
+				15 ticks!
+				me .aim_angle@ angle!
+				glowy
+				0.8 grow!
+				3 fade_out!
+				particles_base_id 0x 51 + spriteid!
+				i 25 * 50 - angle@ + anglexy 2 3 frnd xymul vel!
+				gameticks angle!
+				0.9 scale!
+				1 0.5 0 rgb!
+			}
+		next
+		me .dust
+		me .dust
+	
+	8 for
+		me fire-launchfood
+	next
+	then;
+
+; }
+
+wielder_handler: last
+
+} : fuderpower fuderpower mission{ ' fuderpower-events } ; weapondef{
+
+custom: SUPER LEAF BLOWER
+	weapon: superleaf
+	spriteid: FNFGUNS3 8 +
+
+	ammo_type: LOOT_GAS
+
+	melee_shift.x: 0
+	melee_shift.y: -2
+	melee_off.x: -3
+	melee_off.y: -2
+	melee_aiming: 0
+	melee_weapon_angle: 0
+	melee_windup_angle: -100
+	melee_start_angle: -100
+	melee_end_angle: 45
+
+	lock_drift: 0.01
+	targeting: 0
+	stack_max: 0
+	stack_as_charges: 0
+	reload: 0
+	0.8 custom_retract!
+	ammo_max: 100
+	ai_mule
+	func: WEAPON_FUNC_CUSTOM_AIMING
+
+	: windpushsuper-events args( me eventid )
+		<- eventid
+			THING_EVENT_TIMER ?( <- me silentkillit );
+			THING_EVENT_OVERLAP ?(
+				<- me .overlap_id@ <- me .shooterid@ = if then;
+				<- me .shooterid@ <- me .overlap .shooterid@ = if then;
+//				<- me .typeid@ THING_PROJECTILE = if then; // Might be fun to push bullets?
+				<- me .overlap .typeid@ THING_ZOMBIE = gameticks 5 % not <- me .overlap .vel.z@ -2.5 < and and if 
+					<- me .overlap .hitpoints@ 1 - <- me .overlap .hitpoints!
+				then				
+				<- me .vel 1 <- me .overlap .mass@ 4 max dup * / <- me .overlap .pos.z@ 0 < if 0.7 * then
+					xymul <- me .overlap .vel xyadd <- me .overlap .vel!
+					<- me .overlap .vel.z@ -0.05 + <- me .overlap .vel.z!
+				<- me .vel 0.9 xymul <- me .vel!
+			);
+		drop
+	;
+
+	: windpushsuper spawn invisible ' windpushsuper-events lt .events!
+		15 lt .rad.x!
+		60 lt .timer!
+		0 -1 lt .vel!
+		0.99 lt .friction!
+//		char * lt .spriteid!
+	;
+
+	: anim-superblower args( me )
+		<- me .ammocount 0= if 0 <- me .weapon_state.info! then;
+		<- me .weapon_state.info@ 0= if then;
+
+		3 <- me .weapon_state.off.x!
+		-1 <- me .weapon_state.off.y!
+
+		// Spinning fast
+		<- me .weapon_state.val@ 9 > if
+			<- me .weapon_state.off.x@ -1 1 frnd + <- me .weapon_state.off.x!
+
+			gameticks 2 % not if 							// DAMAGE RATE (60 / 8 hits per second)
+					windpushsuper
+					<- me .id@ lt .shooterid!
+					<- me lt-to-thing lt .pos.y@ 3 + lt .pos.y!
+					<- me .aim_angle@ anglexy <- me .weapon_state.val@ 0.3 *  xymul 2dup lt .vel!
+					<- me .aim_angle@ anglexy 25 xymul lt .pos xyadd lt .pos!
+					15 lt .timer!
+
+					lt .pos particle{ new-gas-smoke pos! lt .id@ target_id! }
+					lt .vel	particle{ vel@ xyadd vel! 15 ticks! 5 fade_in! ticks@ 2 / fade_out! 0.7 scale! 1.1 grow! }
+					<- me .aim_angle@ anglexy 15 xymul particle{ pos@ 3 + xyadd pos! }
+			then
+			
+			// gameticks 60 3 * % 0= if // Decrease every 3 seconds ( 180 ticks, chainsaw is 40 ticks )
+			// gameticks 60 30 * % 0= if // Decrease every 30 seconds, ( 1800 ticks, chainsaw is 160 ticks )
+
+			// FUEL BURN RATES
+			gameticks 35 1 * % 0= if // Decrease every 3 seconds ( 180 ticks, chainsaw is 40 ticks )
+				<- me .useanammo
+			then
+		else
+			gameticks 75 1 * % 0= if // Decrease every 30 seconds, ( 1800 ticks, chainsaw is 160 ticks )
+				<- me .useanammo
+			then
+		then
+
+		gameticks 1 & not if
+			sfx{ -6 nextpri fm2 70 freq! 50 freq2! 0.2 duty2!
+				1 i!
+				500 <- me .weapon_state.val@ 100 * + filt!
+				250 <- me .weapon_state.val@ 50 * + filt_high!
+				75 a! 5 d! 0 s!
+				0.7 <- me .weapon_state.val@ 0.04 * q!
+				0.975 1 frnd 3 * <- me .weapon_state.val@ 0.08 * dup * + gameticks 3 & 0.15 * + pitch!
+				0.8 scale! <- me .adjust-vol
+			}
+		then
+
+		<- me .weapon_state.val@ 10 < if
+			gameticks 3 & not if
+				5 <- me .weapon_state.val@ - onein if <- me .gas-smoke then
+			then
+		else
+(*
+			gameticks 1 & not if
+				<- me .pos particle{ new-gas-smoke pos! }
+				<- me .aim_angle@ anglexy
+					<- me .weapon_state.val@ 0.2 * xymul
+						particle{ vel@ xyadd vel! 15 ticks! 5 fade_in! ticks@ fade_out! 0.5 scale! 1.1 grow! }
+				<- me .aim_angle@ anglexy 15 xymul particle{ pos@ 3 + xyadd pos! }
+			then
+*)
+		then
+
+
+		// Rev down the engine
+		<- me .weapon_state.val@ 0.975 * <- me .weapon_state.val!
+		<- me .weapon_state.user@ <- me .weapon_state.val@ 5 * + 360 % <- me .weapon_state.user!
+	;
+
+	:noname args( me eventid )
+		<- me .carryid@ if then;
+		<- me .anim.state@ if then;
+
+		<- eventid
+			THING_EVENT_ANIMATE ?( <- me anim-superblower );
+
+			THING_EVENT_SHOOT ?( <- me run-whacker );
+		drop
+	;
+
+	wielder_handler: last
+	
+custom: Nailgun
+	spriteid: FNFGUNS4 9 +
+	chargename: Nails
+	stack_as_charges: 1
+	stack_max: 45
+	gun_muzzle_height: 6
+	boom_factor: 0
+	projectiles: 0
+	func: WEAPON_FUNC_SHOOT
+	power: 0.6
+	knockback: 0.6
+	lengthscale: 0.5
+	cooldown: 0.4
+	auto_eject: 1
+	melee_break_scale: 0
+	skill_angle_range: 10
+	pointblank_mid
+	reload: 0.4
+	melee_fatigue_scale: 2
+	wepscorebonus
+
+	: ngproj-events args( me eventid )
+		<- eventid
+			THING_EVENT_WALL ?( 2 <- me .smashybits <- me killit );
+		
+			THING_EVENT_BOUNCE ?( 2 <- me .smashybits <- me killit );
+			
+			THING_EVENT_TIMER ?( 1 <- me .timer! 
+			<- me .vel 0.965 xymul <- me .vel!
+			<- me .anim.counter@ 1 <
+			<- me .vel.x@ <- me .vel.y@ xymag 1 < or
+			if 2 <- me .smashybits <- me killit then );
+			
+			<- me .pos <- me .rad.x@ things-in-xyrad
+			
+			depths for -1 picks .typeid@ THING_ZOMBIE = if 
+					-1 picks dup .hitpoints@ 7 - swap .hitpoints!
+				then
+				
+				pops drop
+			next
+
+			THING_EVENT_WAS_HIT ?( <- me .vel 0.65 xymul <- me .vel! );
+			
+		drop
+	;
+
+
+	: fire-ngproj args( me )
+		spawn <- me lt-to-thing
+		weapons_base_id FNFGUNS4 + 11 + lt .spriteid! bcircle 3 lt .rad.x!
+		1 lt .walkover!
+		<- me thing# lt .throwerid!
+		0.5 lt .mass!
+		// 1 lt .no_hit!
+		// 1 lt .nopush!
+		1 lt .timer!
+		50 lt .anim.counter!
+		3 lt .hitpoints!
+		<- me .aim_angle@ anglexy 7 xymul lt .vel!
+		-4 lt .pos.z!
+		0 lt .vel.z!
+		lt .gravity@ 0.2 * lt .gravity!
+		<- me .aim_angle@ lt .angle!
+		<- me .aim_angle@ anglexy 16 xymul lt .pos xyadd lt .pos!
+		0.95 lt .friction!
+		0.75 lt .bounce_friction!
+		' ngproj-events lt .events!
+
+		sfx{ noise 400 freq! 0.4 scale! <- me .adjust-vol }
+		sfx{ noise 5.5 delay! 800 freq! 10000 filt! 0.5 scale! <- me .adjust-vol }
+
+		// 3 rumble
+
+	;
+
+
+	:noname args( me eventid )
+		<- eventid THING_EVENT_SHOOT = if
+			<- me fire-ngproj
+		then;
+	;
+
+	wielder_handler: last
+
+root{
+: #nailgun nailgun .item.charges! ;
+: nailgun 45 #nailgun ; }
+
+custom: Nail machinegun
+	tags: supernail
+	spriteid: FNFGUNS4 10 +
+	chargename: Nails
+	stack_as_charges: 1
+	stack_max: 90
+	gun_muzzle_height: 6
+	boom_factor: 0
+	projectiles: 0
+	func: WEAPON_FUNC_SHOOT
+	power: 0.5
+	knockback: 0.7
+	lengthscale: 0.5
+	cooldown: 0.12
+	auto_eject: 1
+	melee_break_scale: 0
+	skill_angle_range: 10
+	pointblank_mid
+	reload: 0.12
+	melee_fatigue_scale: 3
+	wepscorebonus
+	
+	: ngprojsuper-events args( me eventid )
+		<- eventid
+			THING_EVENT_WALL ?( 2 <- me .smashybits <- me killit );
+		
+			THING_EVENT_BOUNCE ?( 2 <- me .smashybits <- me killit );
+			
+			THING_EVENT_TIMER ?( 1 <- me .timer! 
+			<- me .vel 0.965 xymul <- me .vel!
+			<- me .anim.counter@ 1 <
+			<- me .vel.x@ <- me .vel.y@ xymag 1 < or
+			if 2 <- me .smashybits <- me killit then );
+			
+			<- me .pos <- me .rad.x@ things-in-xyrad
+			
+			depths for -1 picks .typeid@ THING_ZOMBIE = if 
+					-1 picks dup .hitpoints@ 12 - swap .hitpoints!
+				then
+				
+				pops drop
+			next
+
+			THING_EVENT_WAS_HIT ?( <- me .vel 0.75 xymul <- me .vel! );
+			
+		drop
+	;
+	
+	: fire-ngprojsuper args( me )
+		spawn <- me lt-to-thing
+		weapons_base_id FNFGUNS4 + 11 + lt .spriteid! bcircle 3 lt .rad.x!
+		1 lt .walkover!
+		<- me thing# lt .throwerid!
+		0.5 lt .mass!
+		// 1 lt .no_hit!
+		// 1 lt .nopush!
+		1 lt .timer!
+		80 lt .anim.counter!
+		4 lt .hitpoints!
+		<- me .aim_angle@ anglexy 9.5 xymul lt .vel!
+		-4 lt .pos.z!
+		0 lt .vel.z!
+		lt .gravity@ 0.16 * lt .gravity!
+		<- me .aim_angle@ lt .angle!
+		<- me .aim_angle@ anglexy 16 xymul lt .pos xyadd lt .pos!
+		0.95 lt .friction!
+		0.75 lt .bounce_friction!
+		' ngprojsuper-events lt .events!
+
+		sfx{ noise 300 freq! 0.6 scale! <- me .adjust-vol }
+		sfx{ noise 5.5 delay! 600 freq! 10000 filt! 0.75 scale! <- me .adjust-vol }
+
+		// 3 rumble
+
+	;
+	
+	:noname args( me eventid )
+		<- eventid THING_EVENT_SHOOT = if
+			<- me fire-ngprojsuper
+		then;
+	;
+	
+	wielder_handler: last
+	
+root{
+: #supernail supernail .item.charges! ;
+: supernail 90 #supernail ; }
+	
+// FNF was-special guns
+	
+WEAPON_SHOTGUN clone-to: Combat shotgun
+	weapon: pdshotty
+	spriteid: FNFGUNS4 2 +
+	boom_factor: 2.5
+	gun_muzzle_height: 3
+	ammo_type: LOOT_SHOTGUN_SHELL
+	cock_sound: 2
+			   
+	shot_power: 0.65
+	projectiles: 6
+	func: WEAPON_FUNC_SHOOT
+	melee_windup_angle: 0
+	melee_end_angle: 225
+	melee_reach: -16
+	shoot_thru: 0.1
+	shot_knockback: 1.5
+	skill_angle_range: 25
+	pointblank_near
+	spread_factor: 3
+	cooldown: 0.7
+	reload: 0.65
+	power: 1.5
+	knockback: 2
+	ammo_max: 60
+	wepscorebonus
+	
+WEAPON_DOLT clone-to: Flintlock
+	weapon: flintlock
+	spriteid: FNFGUNS4 3 +
+	ammo_type: LOOT_RIFLE_SHELL
+	gun_muzzle_height: 4
+	cock_sound: 1
+	boom_factor: 2
+	power: 0.5
+	revolver: 1
+	reload: 1.25
+	shot_power: 3.5
+	knockback: 0.5
+	shoot_thru: 0.3
+	shot_knockback: 2.3
+	skill_angle_range: 30
+	melee_break_scale: 0.02
+	
+// FNF throwables
+
+custom: Stick grenade
+	tags: stielnade
+	spriteid: FNFGUNS4 8 +
+	power: 0
+	melee_thrown: 1
+	melee_thrown_lob: 2.5
+	stack_max: 6
+	ai_mule
+
+mission{
+
+thing-event: stielnade-events
+	eventid THING_EVENT_DID_BURN = if
+		me .pos 3.5 xypowboom
+		me silentkillit
+	then
+
+	eventid THING_EVENT_THROW = if
+		1000 me .anim.counter!
+		-15 me .flipx * me .rot!
+		1 me .timer!
+		-15 me .flipx * me .rot!
+		-47 me .flipx * me .angle@ + me .angle!
+		1 me .mass!
+		15 me .hitpoints!
+		1 me .lob_mode!
+		0.1 me .mass!
+		1 me .no_hit!
+		1 me .item.locked!
+		me .vel xynorm 1.55 ( <- change this number for shorter/longer throw ) xymul me .vel!
+		me .vel.z@ 1.25 - me .vel.z! // A bit extra lob
+		// 1 me .weapon_state.frame!
+	then
+
+	eventid THING_EVENT_BOUNCE = if
+		me .anim.counter@ 0 > if
+			me .pos 3.5 xypowboom
+			me silentkillit
+		then
+	then
+
+	eventid THING_EVENT_TIMER = if
+		1 me .timer!
+		me .angle@ me .rot@ + me .angle!
+	then
+;
+
+	melee_thrown_handler: last
+}
+
+} : stielnade stielnade mission{ ' stielnade-events } lt .events! 100 lt .flammability! ; weapondef{
+
+custom: Flashbang
+	spriteid: FNFGUNS3 10 +
+	power: 0
+	melee_thrown: 1
+	melee_thrown_lob: 2
+	stack_max: 8
+	ai_mule
+
+mission{
+
+	: flashstun 0 args( me cur )
+		<- me .pos 50 things-in-xyrad
+		depths for 
+			-1 picks .typeid@ THING_ZOMBIE = if 
+				-1 picks 200 swap .stun!
+				-1 picks 15 swap .shudder!
+			else
+				-1 picks .typeid@ THING_HUMAN = if
+					-1 picks .character@ -> cur
+					<- cur .glassestype@ 2 =
+					<- cur .glassestype@ 4 =
+					<- cur .glassestype@ 6 =
+					<- cur .glassestype@ 8 =
+					<- cur .glassestype@ 13 =
+					<- cur .glassestype@ 14 =
+					<- cur .glassestype@ 15 =
+					<- cur .glassestype@ 16 =
+					<- cur .glassestype@ 20 =
+					<- cur .glassestype@ 21 =
+					<- cur .glassestype@ 28 =
+					<- cur .specialtype@ 95 =
+					<- cur .specialtype@ 116 =
+					<- cur .specialtype@ 127 =
+					or or or or or or or or or or or or or if
+						-1 picks 15 swap .shudder!
+						-1 picks 15 swap .stun!
+					else
+						-1 picks 15 swap .shudder!
+						-1 picks 85 swap .stun!
+					then
+				then
+			then
+			pops drop
+		next
+		drop
+	;
+
+thing-event: flashbang-events
+	eventid THING_EVENT_DID_BURN = if
+		30 me .hitpoints!
+		0 me .flammability! 0 me .burning!
+		me .anim.counter@ 0= if
+			1 me .timer!
+			75 me .anim.counter!
+		then
+	then
+
+	eventid THING_EVENT_THROW = if
+		me .anim.counter@ 0= if
+			1 me .timer!
+			100 me .anim.counter!
+		then
+		1 me .mass!
+		15 me .hitpoints!
+		1 me .lob_mode!
+		0.1 me .mass!
+		1 me .no_hit!
+		90 me .flipx * me .rot!
+		1 me .item.locked!
+		me .vel xynorm 1 ( <- change this number for shorter/longer throw ) xymul me .vel!
+		me .vel.z@ 0.75 - me .vel.z! // A bit extra lob
+	then
+
+	eventid THING_EVENT_BOUNCE = if
+		me .angle@ me .rot@ + me .angle!
+	then
+	
+	eventid THING_EVENT_TIMER = if
+		1 me .timer!
+		me .anim.counter@ 20 = if
+			sfx{ thump 0.2 s! 500 r! 100 filt! 0.9 q! 4 scale! 0.5 fx .pitch! }
+			sfx{ thump 0.005 delay! 0.1 s! 1000 r! 1000 filt! 0.999 q! 0.07 scale! 1500 fx .d! 1 fx pitch! 2 fx priority! }
+			-100 fade_to 1 1 1 fade_clr 65 fade_count!
+			me flashstun
+			1 1 1 me 350 me .anim.counter@ 5 - 15 / * me .pos d-light
+			1 4 for
+			me .pos3
+				particle{
+					new pos3!
+					particles32_base_id 3 + spriteid!
+					-1 *
+					0.25 1 frnd over * 8 * pos.x@ + pos.x!
+					-1 1 frnd 8 * pos.y@ + pos.y!
+					-0.25 -0.5 frnd vel.z!
+					0.99 grow!
+					0.9 1.1 frnd scale!
+					5 fade_in!
+					15 fade_out!
+					90 0 15 rnd + ticks!
+					0.5 clr.r!
+					0.25 0.35 frnd clr.g!
+					1 clr.b!
+					0.25 -0.25 frnd vel.x!
+					3 scale! 0 vel.z! 1 clr.r! 1 clr.g! 1 clr.b! 0.75 grow! glowy
+					particles32_base_id 1+ spriteid!
+					15 ticks!
+					i 2 * wait!
+				}
+			next
+		else
+			me .anim.counter@ 5 > if
+				me .anim.counter@ 20 < if
+					1 1 1 me 350 me .anim.counter@ 5 - 15 / * me .pos d-light
+				then
+			else
+				me killit
+			then
+		then
+	then
+	
+;
+
+	melee_thrown_handler: last
+}
+
+} : flashbang flashbang mission{ ' flashbang-events } lt .events! 100 lt .flammability! ; weapondef{
+
+custom: Incendiary grenade
+	tags: incendnade
+	spriteid: FNFGUNS3 11 +
+	power: 0
+	melee_thrown: 1
+	melee_thrown_lob: 2
+	stack_max: 5
+	ai_mule
+
+mission{
+
+	: incendsplash spawn lt args( thing )
+		42 lt .spriteid!
+		me .pos lt .pos!
+		1 lt .nocollide!
+		1 lt .no_hit!
+		100 lt .flammability!
+		0 lt .spriteid!
+		splash-vel
+		lt .gravity@ 0.5 * lt .gravity!
+		8 lt .rad.x!
+		16 lt .rad.z!
+		mission{ ' flamebitz } lt .events!
+		1 lt .timer!
+		3 lt .hitpoints!
+
+		// Old values
+		// 60 lt .anim.counter! // Minimum burn time of molotov + 60s
+		// 8 lt .rad.x!			// Area of effect for burning
+
+		1200 lt .anim.counter! // was 180 before, then 360
+		27 lt .rad.x! // Was 16 before, tried 24 but seemed too big
+
+		sfx{
+			noise me .adjust-vol 100 fx .a! 0.5 0.75 frnd fx .pitch!
+			50 500 frnd fx .filt!
+			0 0.5 fx .q!
+		}
+	;
+
+	thing-event: incendnade-events
+		eventid THING_EVENT_DID_BURN = if
+			30 me .hitpoints!
+			0 me .flammability! 0 me .burning!
+			me .anim.counter@ 0= if
+				60 me .timer!
+				1 me .anim.counter!
+			then
+		then
+	
+		eventid THING_EVENT_THROW = if
+			me .anim.counter@ 0= if
+				120 me .timer!
+				1 me .anim.counter!
+			then
+			1 me .mass!
+			15 me .hitpoints!
+			1 me .lob_mode!
+			0.1 me .mass!
+			1 me .no_hit!
+			90 me .flipx * me .rot!
+			1 me .item.locked!
+			me .vel xynorm 1.4 ( <- change this number for shorter/longer throw ) xymul me .vel!
+			me .vel.z@ 0.75 - me .vel.z! // A bit extra lob
+		then
+
+		eventid THING_EVENT_BOUNCE = if
+			me .angle@ me .rot@ + me .angle!
+		then
+
+		eventid THING_EVENT_TIMER = if
+			6 for me incendsplash next
+			me silentkillit
+		then
+	; 
+	
+	melee_thrown_handler: last
+}
+
+} : incendnade incendnade mission{ ' incendnade-events } lt .events! 100 lt .flammability! ; weapondef{
+
+	: tearcloud args( me )
+		3 for 
+			particle{ new <- me .pos pos!
+				0.80 0.80 0.80 rgb!
+				particles_base_id 0x 2c + spriteid!
+				60 5 / i 1- * wait!
+				rndsign 2 * rotate!
+				0 360 frnd anglexy 0.3 xymul vel!
+				vel@ 25 * pos@ xyadd pos!
+				60 ticks! 45 fade_in! 45 fade_out!
+				2.5 scale!
+				0.99 grow!
+			}
+		next
+	;
+
+	: tearcloud-handler 0 args( me eventid cur )
+		<- eventid THING_EVENT_TIMER <> if then;
+		<- me tearcloud
+		<- me .anim.info@ 1- <- me .anim.info!
+		<- me .anim.info@ 1 < if <- me silentkillit then;
+		25 <- me .timer!
+
+		<- me .pos <- me .rad.x@ things-in-xyrad
+		depths for 
+			-1 picks .typeid@ THING_ZOMBIE = if
+				-1 picks 10 swap .shudder!
+				gameticks 3 % 0 > if
+					-1 picks .hitpoints@ 1 > if
+						-1 picks dup .hitpoints@ 1 - swap .hitpoints!
+					else
+						27 %chance if
+							-1 picks dup .hitpoints@ 1 - swap .hitpoints!
+						else
+							-1 picks 5 swap .stun!
+						then
+					then
+				then
+				// slight damage reduction
+				sfx{ -10 nextpri noise freq@ 2 * freq! 1 freq2! 0.5 1 frnd pitch!
+					1000 filt_high!
+					-1 priority!
+					-1 picks .adjust-vol // 25 a!
+				}
+			else
+				// gas immunities: robits and gas masks usually.
+				-1 picks .typeid@ THING_HUMAN = if
+					-1 picks .character@ -> cur
+					<- cur .glassestype@ 26 = not
+					<- cur .specialtype@ 23 = not
+					<- cur .specialtype@ 39 = not
+					<- cur .specialtype@ 40 = not
+					<- cur .specialtype@ 95 = not
+					<- cur .specialtype@ 109 = not
+					<- cur .specialtype@ 110 = not
+					<- cur .specialtype@ FNFSC 4 + = not
+					<- cur .specialtype@ FNFSC 9 + = not
+					<- cur .specialtype@ FNFSC 10 + = not
+					// gotta do immunities this way cause load order bleghh
+					and and and and and and and and and if 
+						-1 picks .character@ .health@ 0 > if
+							-1 picks .hitpoints@ -8 < if
+								-1 picks 0 swap .hitpoints!
+							then
+							-1 picks dup .hitpoints@ 1 - swap .hitpoints!
+							-1 picks 10 swap .stun!
+							-1 picks 5 swap .shudder!
+							sfx{ noise freq@ 2 * freq! 1 freq2! 0.5 1 frnd pitch!
+								1000 filt_high!
+								1.5 scale!
+								-1 priority!
+								-1 picks .adjust-vol // 25 a!
+							}
+							-1 picks .hitpoints@ -7 < if
+								-1 picks 1 swap .hitpoints!
+								-1 picks 15 swap .shudder!
+								-1 picks 17 swap .stun!
+								-1 picks dup .character@ .health@ 1 - swap .character@ .health!
+								-1 picks .report-health
+								sfx{ bite -1 picks .adjust-vol }
+							else
+								// <- cur 1 ($ "aaa" .. :D $) thing# .reportdur
+							then
+						then
+					then
+				then
+			then
+			pops drop
+		next
+		drop
+	;
+
+	: tearspawn args( me )
+		spawn ' tearcloud-handler lt .events! lt .invisible
+		<- me thing# lt .throwerid!
+		<- me lt-to-thing
+
+		33 lt .rad.x!
+		1 lt .timer!
+		3 lt .anim.info!
+	;
+
+custom: Gas grenade
+	tags: gasnade
+	spriteid: FNFGUNS3 9 +
+	power: 0
+	melee_thrown: 1
+	melee_thrown_lob: 2
+	stack_max: 6
+	ai_mule
+
+mission{
+
+thing-event: gasnade-events
+	eventid THING_EVENT_DID_BURN = if
+		30 me .hitpoints!
+		0 me .flammability! 0 me .burning!
+		me .anim.counter@ 0= if
+			1 me .timer!
+			2150 me .anim.counter!
+		then
+	then
+
+	eventid THING_EVENT_THROW = if
+		me .anim.counter@ 0= if
+			1 me .timer!
+			2150 me .anim.counter!
+		then
+		1 me .mass!
+		15 me .hitpoints!
+		1 me .lob_mode!
+		0.1 me .mass!
+		1 me .no_hit!
+		90 me .flipx * me .rot!
+		me .angle@ me .rot@ + me .angle!
+		1 me .item.locked!
+		me .vel xynorm 0.6 ( <- change this number for shorter/longer throw ) xymul me .vel!
+		me .vel.z@ 0.85 - me .vel.z! // A bit extra lob
+		then
+
+	eventid THING_EVENT_BOUNCE = if
+		me .angle@ me .rot@ + me .angle!
+	then
+	
+	eventid THING_EVENT_TIMER = if
+		1 me .timer!
+			me .anim.counter@ 2000 < me .anim.counter@ 100 > and if
+				me .anim.counter@ 50 % 0= if
+					me tearspawn
+				then
+				me .anim.counter@ 3 % 0= if
+					sfx{ -20 nextpri noise 1 freq! 3000 freq2! 50 a! 1500 filt_high! 0.03 0.06 me .anim.counter@ 2000 / 90 * sin * + scale! -1 priority! me .pos xy-vol }
+				then
+				me .anim.counter@ 5 % 0= if
+				me .pos3
+				particle{ new pos3! }
+				me .angle@ 90 me .flip@ flipx * - anglexy 5 xymul
+				particle{ pos@ xyadd pos! 
+					0.80 0.80 0.80 rgb!
+					particles_base_id 0x 2c + spriteid!
+					rndsign 2 * rotate!
+					-15 15 frnd angle@ + anglexy 0.25 0.35 me .anim.counter@ 2000 / 90 * sin * + xymul vel!
+					60 ticks! 35 fade_in! 55 fade_out!
+					0.5 0.3 me .anim.counter@ 2000 / 90 * sin * + scale!
+					0.99 grow!
+				}
+				then
+			else
+				me .anim.counter@ 50 % 0= me .anim.counter@ 2000 < and if
+					me tearspawn
+				then
+				me .anim.counter@ 10 < if
+					me killit
+				then
+			then
+	then
+	
+;
+	melee_thrown_handler: last
+}
+
+} : gasnade gasnade mission{ ' gasnade-events } lt .events! 100 lt .flammability! ; weapondef{
+
+custom: Road flare
+	tags: roadflare
+	spriteid: FNFGUNS3 12 +
+	power: 0
+	melee_thrown: 1
+	melee_thrown_lob: 2
+	stack_max: 6
+	ai_mule
+
+mission{
+
+thing-event: rflare-events
+	eventid THING_EVENT_DID_BURN = if 
+		0 me .flammability! 0 me .burning!
+		me .anim.counter@ 0= if
+			1 me .timer! 3450 me .anim.counter! 30 me .hitpoints!
+		then
+	then;
+
+	eventid THING_EVENT_THROW = if
+		me .anim.counter@ 0= if
+			3500 me .anim.counter! 1 me .timer!
+		then
+		-15 me .flipx * me .rot!
+		me .angle@ me .rot@ + me .angle!
+		15 me .hitpoints!
+		1 me .lob_mode!
+		0.1 me .mass!
+		1 me .no_hit!
+		1 me .item.locked!
+		me .vel xynorm 1 ( <- change this number for shorter/longer throw ) xymul me .vel!
+		me .vel.z@ 0.75 - me .vel.z! // A bit extra lob
+	then
+
+	eventid THING_EVENT_BOUNCE = if
+		me .rot@ -0.5 * me .rot!
+	then
+
+	eventid THING_EVENT_TIMER = if
+		me .anim.counter@ 50 > if
+			1 me .timer!
+			me .angle@ me .rot@ + me .angle!
+			me .rot@ abs 5 < if
+				0 me .rot!
+				0 me .angle!
+			then
+			me .anim.counter@ 3450 < if
+				me .pos 8 things-in-xyrad
+				depths for 
+					-1 picks dup .hitpoints@ 0 > if
+						0.1 swap .try2burn
+					else
+						-1 picks dup .typeid@ THING_HUMAN = if
+							0.1 swap .try2burn
+						then
+					then
+					pops drop
+				next
+			then
+			0.8 0.2 0.2 me .anim.counter@ 3500 / 90 * sin 175 225 frnd * 40 + me .pos me .angle@ 90 me .flip@ flipx * - anglexy 5.5 xymul xyadd d-light
+			me .anim.counter@ 2 % 0= if
+				1 for
+					me .pos3
+					particle{ new pos3! }
+					me .angle@ 90 me .flip@ flipx * - anglexy 5.5 xymul
+					particle{ pos@ xyadd pos!
+						20 ticks!
+						glowy
+						0.95 grow!
+						7 fade_out!
+						particles_base_id 0x 51 + spriteid!
+						-20 20 frnd angle@ + anglexy 0.35 0.8 frnd me .anim.counter@ 3500 / 90 * sin 1.25 * + 0.6 * xymul vel!
+						me .anim.counter@ 3500 / 90 * sin 0.5 * 0.5 + 0.45 * scale!
+						1 0.2 0.2 rgb!
+					}
+				next
+			then
+			sfx{ -10 nextpri noise 25 a! 5 d! 0.75 1 frnd 10 * pitch! 0.16 me .anim.counter@ 3500 / 90 * sin * 0.04 + scale! -1 priority! 1500 filt_high! me .pos xy-vol }
+		else
+			1 me .timer!
+			me .anim.counter@ 0 > me .anim.counter@ 4 < if
+				me killit
+			then
+		then
+	then
+
+;
+
+	melee_thrown_handler: last
+}
+
+} : roadflare roadflare mission{ ' rflare-events } lt .events! 100 lt .flammability! ; weapondef{
+
+custom: Football
+	spriteid: FNFGUNS3 13 +
+	cooldown: 0.2
+	melee_thrown: 1
+	melee_thrown_speed: 3.75
+	melee_thrown_lob: 0.65
+	thrown_lift: 0.75
+	melee_shift.y: 0
+	melee_shift.x: 1
+	stack_max: 1
+	melee_range_hint: 50
+	
+mission{
+thing-event: throwfootball-events
+	eventid THING_EVENT_THROW = if
+		me .vel xyangle 90 me .flipx * + me .angle!
+		20 me .hitpoints!
+		1.3 me .mass!
+	then
+}
+;
+	melee_thrown_handler: last
+	
+
+// FNF was-special melee
+
+custom: Karambit
+	spriteid: FNFMELEE2 1 +
+	power: 1.7
+	knockback: 0.6
+	cooldown: 0.5
+	melee_break_scale: 0
+
+	melee_start_angle: -220
+	melee_windup_angle: -250
+	melee_end_angle: 120 360 +
+
+	melee_shift.x: -7
+	melee_shift.y: 2
+	melee_extra_hits: 1
+	melee_extra_chance: 1
+	lightcooldown
+
+mission{
+	thing-event: karambit-events
+		eventid THING_EVENT_SWING = if
+			sfx{ ringmod me .adjust-vol 30 delay! 25 d! 3.75 4.25 frnd pitch!
+			freq@ 1.2 * freq2! 0.1 s! 250 r! scale@ 0.5 * scale! }
+		then
+	;
+}
+	wielder_handler: last
+	
+// FNF melee
+	
+WEAPON_UMBRELLA clone-to: Skeleton arm
+	weapon: skelarm
+	spriteid: FNFMELEE 8 +
+	knockback: 0.6
+	power: 0.6
+	cooldown: 0.65
+	melee_break_scale: 0.05
+	melee_extra_hits: 1
+	swoosh_particle1: 0x 3
+	swoosh_particle2: 0x 40
+	lightcooldown
+	trashmelee
+	
+WEAPON_SHIV clone-to: Bone shiv
+	weapon: shvbone
+	spriteid: FNFMELEE 9 +
+	knockback: 0
+	power: 0.9
+	cooldown: 0.5
+	melee_shift.x: 3
+	melee_break_scale: 0.1
+	melee_reach: 12
+	melee_retract: 0.6
+	melee_range: 3.5
+	thrust_range: 3
+	swoosh_vel: 1.35
+	trashmelee
+	
+WEAPON_WOOD clone-to: Piece of wood w/ bits
+	weapon: nailwood
+	spriteid: FNFMELEE 5 +
+	knockback: 0.65
+	power: 1.2
+	cooldown: 0.6
+	melee_break_scale: 0.08
+	trashmelee
+	
+WEAPON_REBAR clone-to: Sharp piece of wood
+	weapon: stabwood
+	spriteid: FNFMELEE 6 +
+	knockback: 0.375
+	power: 0.9
+	cooldown: 0.5
+	melee_break_scale: 0.1
+	swoosh_particle1: 0x 45
+	swoosh_particle2: 0x 45
+	swoosh_range: 0
+	thrust_range: 4
+	swoosh_vel: 1
+	half-fatigue
+	trashmelee
+	
+WEAPON_SHIV clone-to: Switchblade
+	weapon: swblade
+	spriteid: FNFMELEE 11 +
+	knockback: 0
+	power: 0.92
+	cooldown: 0.5
+	melee_shift.x: 3
+	melee_break_scale: 0
+	melee_reach: 6
+	melee_retract: 0.45
+	melee_range: -2
+	thrust_range: -2
+	swoosh_vel: 1
+	
+custom: Butterfly knife
+	tags: butterfly
+	spriteid: FNFMELEE 12 +
+	power: 2.5
+	knockback: 0
+	melee_start_angle: 60
+	melee_windup_angle: 90
+	melee_end_angle: -120
+	melee_weapon_angle: -120
+	melee_reach: 10
+	melee_shift.x: -4
+	melee_off.x: 4
+	melee_off.y: -1
+	melee_break_scale: 0
+	lightcooldown
+	
+WEAPON_SCALPEL clone-to: Boxcutter
+	spriteid: FNFMELEE2 6 +
+	power: 0.75
+	knockback: 0
+	melee_break_scale: 0.0025
+	melee_fatigue_scale: 0.5
+	
+	custom: Combat knife
+	tags: cbknife
+	spriteid: FNFMELEE 13 +
+	power: 1.2
+	melee_extra_hits: 1
+	knockback: 0.35
+	melee_start_angle: 90
+	melee_windup_angle: 120
+	melee_end_angle: -120
+	melee_weapon_angle: -120
+	melee_reach: 10
+	melee_off.x: 4
+	melee_off.y: 1
+	melee_break_scale: 0
+	lightcooldown
+	wepscorebonus
+	
+WEAPON_SHOVEL clone-to: Entrenching tool
+	tags: entrencher
+	spriteid: FNFMELEE2 7 + 
+	knockback: 1.35
+	power: 0.88
+	cooldown: 0.88
+	melee_extra_chance: 0.75
+	melee_extra_hits: 1
+	
+WEAPON_SHOVEL clone-to: Trench shovel
+	tags: trenchshov
+	spriteid: FNFMELEE2 8 +
+	knockback: 1.85
+	power: 1.75
+	cooldown: 1.15
+	melee_extra_chance: 0.5
+	
+custom: Drill
+	spriteid: FNFMELEE 14 +
+	stack_max: 100
+	stack_as_charges: 1
+	chargename: Power
+	power: 0.6
+	knockback: 0.7
+	lengthscale: 0.5
+	melee_reach: -10
+	melee_aiming: 0
+	melee_shift.y: -1.5
+	lock_drift: 0.05 // Formerly 0.03
+	targeting: 0
+	reload: 0
+	cooldown: 0
+	heavycooldown
+	melee_range_hint: -15
+	melee_fatigue_scale: 1.5
+	0.3 custom_retract!
+
+	func: WEAPON_FUNC_CUSTOM_AIMING
+
+	: anim-drill args( me )
+
+		<- me .weapon_state.val@ 0.375 * <- me .weapon_state.reach!
+		<- me .weapon_state.user@ 10 % 5 < if
+			0 <- me .weapon_state.frame!
+		else
+			1 <- me .weapon_state.frame!
+		then
+		// Spinning fast
+		<- me .weapon_state.val@ 5 > if
+			-1 1 frnd <- me .weapon_state.off.y!
+
+			gameticks 5 % not if 							// DAMAGE RATE (60 / 8 hits per second)
+				0.44 <- me .pos xyblast .hitcheck.power!		// DAMAGE AMOUNT, formerly 0.4
+				1 lt .hitcheck.mode!						// Don't hit players
+				3 lt .rad.x!
+
+				<- me .aim_angle@ anglexy 8 <- me .weapon_state.reach@ + xymul lt .pos xyadd lt .pos!
+				-1 lt .anim.substate! // Melee coloured blast
+			then
+		then
+
+		gameticks 1 & not <- me .weapon_state.val@ 0 > and if
+			sfx{ -6 nextpri pulse 100 freq! 110 freq2! 0.95 duty!
+				1000 <- me .weapon_state.val@ 100 * + filt!
+				1000 <- me .weapon_state.val@ 50 * + filt_high!
+				55 a! 5 d! 0 s!
+				0.7 <- me .weapon_state.val@ 0.04 * q!
+				0.9 1 frnd 0.9 * <- me .weapon_state.val@ 0.08 * dup * + gameticks 3 & 0.4 * + pitch!
+				0.35 scale! <- me .adjust-vol
+			}
+		then
+
+		// Rev down the engine
+		<- me .weapon_state.val@ 1 - 20 0 clamp <- me .weapon_state.val!
+		<- me .weapon_state.user@ <- me .weapon_state.val@ + 60 % <- me .weapon_state.user!
+	;
+
+	: rev-drill args( me )
+		<- me .ammocount 0= if then;
+		<- me .weapon_state.val@ 4 + 20 0 clamp <- me .weapon_state.val!
+		gameticks 37 % 0= if
+			<- me .useanammo
+		then
+	;
+
+	:noname args( me eventid )
+		<- me .carryid@ if then;
+		<- me .anim.state@ if then;
+
+		<- eventid
+			THING_EVENT_ANIMATE ?( <- me anim-drill );
+
+			<- me .action_cooldown@ if then;
+
+			THING_EVENT_SHOOT ?( <- me rev-drill );
+		drop
+	;
+
+	wielder_handler: last
+	
+root{
+: #drill drill .item.charges! ;
+: drill 100 #drill ; }
+
+WEAPON_TRUEKATANA clone-to: Megatana
+	weapon: megatana
+	spriteid: FNFMELEE 1 +
+	knockback: 0.8
+	power: 2
+	cooldown: 1
+	melee_extra_chance: 1
+	wepscorebonus
+	
+// OVERFLOW POINT: no more room items can spawn from here via room generation.
+
+custom: Switchblade comb
+	tags: switchcomb
+	spriteid: FNFMELEE2 2 +
+	power: 0.35
+	knockback: 0.6
+	cooldown: 0.5
+	melee_reach: 10
+	lightcooldown
+	melee_extra_hits: 1
+	melee_extra_chance: 1
+	melee_break_scale: 0
+	half-fatigue
+	swoosh_particle1: 0x 6e
+	swoosh_particle2: 0x 6b
+	
+WEAPON_SLEDGE clone-to: Sledgecutter
+	weapon: sldgcut
+	spriteid: FNFMELEE 2 +
+	power: 2.5
+	knockback: 3
+	cooldown: 1
+	melee_extra_chance: 1
+	wepscorebonus
+	
 custom: Comically oversized pistol
 
 	weapon: comicalpistol
@@ -6404,7 +7867,7 @@ custom: Comically oversized pistol
 	stack_as_charges: 1
 	stack_max: 19
 	reload: 0.5
-	heavycooldown
+	melee_fatigue_scale: 4.5
 	wepscorebonus
 
 	: cpbullet-events args( me eventid )
@@ -6413,14 +7876,17 @@ custom: Comically oversized pistol
 		
 			THING_EVENT_BOUNCE ?( <- me killit );
 			
-			THING_EVENT_TIMER ?( 1 <- me .timer! 1 0.5 0 5 <- me .pos d-light 
-			<- me .anim.counter@ 1 < if <- me silentkillit then );
+			THING_EVENT_TIMER ?( 1 <- me .timer! 1 0.5 0 5 <- me .pos d-light
+			<- me .anim.counter@ 1 <
+			<- me .vel.x@ <- me .vel.y@ xymag 8.5 < or
+			if <- me silentkillit then );
 
 			THING_EVENT_WAS_HIT ?( );
 			
 			<- me .pos <- me .rad.x@ things-in-xyrad
 			
-			depths for -1 picks .typeid@ THING_ZOMBIE = if 
+			depths for 
+				-1 picks .typeid@ THING_ZOMBIE = if 
 					-1 picks dup .hitpoints@ 50 - swap .hitpoints!
 					100000 <- me .hitpoints!
 				then
@@ -6434,7 +7900,7 @@ custom: Comically oversized pistol
 
 	: fire-cpbullet args( me )
 		spawn <- me lt-to-thing
-		weapons_base_id FNFGUNS3 + 5 + lt .spriteid! bcircle 9 lt .rad.x!
+		weapons_base_id FNFGUNS3 + 5 + lt .spriteid! bcircle 12 lt .rad.x!
 		1 lt .walkover!
 		<- me thing# lt .throwerid!
 		20 lt .mass!
@@ -6511,952 +7977,105 @@ root{
 : #comicalpistol comicalpistol .item.charges! ;
 : comicalpistol 19 #comicalpistol ; }
 	
-// fnf melee
-
-WEAPON_TRUEKATANA clone-to: Megatana
-	weapon: megatana
-	spriteid: FNFMELEE 1 +
-	knockback: 0.8
-	power: 2
-	cooldown: 1
-	melee_extra_chance: 1
-	wepscorebonus
-	
-WEAPON_TREEBRANCH clone-to: Superstick
-	weapon: superstick
-	spriteid: FNFMELEE 2 +
-	knockback: 1
-	power: 1.1
-	cooldown: 0.5
-	lightcooldown
-	melee_break_scale: 0
-	
-WEAPON_LOG clone-to: Battle log
-	weapon: battlelog
-	spriteid: FNFMELEE 3 +
-	knockback: 4
-	power: 6
-	cooldown: 1.7
-	melee_extra_hits: 4
-	melee_reach: 16
-	melee_range: 12
-	wepscorebonus
-	
-WEAPON_SLEDGE clone-to: Sledgecutter
-	weapon: sledgecutter
-	spriteid: FNFMELEE 4 +
-	power: 2.5
-	knockback: 3
-	cooldown: 1
-	melee_extra_chance: 1
-	wepscorebonus
-	
-// fnf special ranged
-
-WEAPON_DOLT clone-to: Pardue's Revolver
-	weapon: pdrevolver
-	spriteid: FNFSGUNS
-	ammo_type: LOOT_BULLET
-	boom_factor: 2
-	reload: 0.8
-	spread_factor: 0
-	shot_power: 3
-	projectiles: 2
-	power: 0.8
-	knockback: 0.7
-	shoot_thru: 0.5
-	shot_knockback: 1.5
-	wepscorebonus
-	
-WEAPON_SHOTGUN clone-to: Pardue's Shotgun
-	weapon: pdshotty
-	spriteid: FNFSGUNS 1 +
-	boom_factor: 2.5
-	gun_muzzle_height: 3
-	ammo_type: LOOT_SHOTGUN_SHELL
-	cock_sound: 2
-	shot_power: 0.6
-	projectiles: 6
-	func: WEAPON_FUNC_SHOOT
-	melee_windup_angle: 0
-	melee_end_angle: 225
-	melee_reach: -16
-	shoot_thru: 0.1
-	shot_knockback: 1.5
-	skill_angle_range: 25
-	pointblank_near
-	spread_factor: 3
-	cooldown: 0.7
-	reload: 0.75
-	power: 1.5
-	knockback: 2
-	ammo_max: 60
-	wepscorebonus
-	
-WEAPON_DOLT clone-to: Flintlock
-	spriteid: FNFSGUNS 2 +
-	ammo_type: LOOT_BULLET
-	gun_muzzle_height: 4
-	cock_sound: 1
-	boom_factor: 2
-	power: 0.5
-	revolver: 1
-	reload: 1.25
-	shot_power: 3.5
-	knockback: 0.5
-	shoot_thru: 0.3
-	shot_knockback: 2.3
-	skill_angle_range: 15
-	
-custom: Energy pistol
-	tags: driftpist
-	spriteid: FNFSGUNS 3 +
-	stack_max: 45
+custom: Beagle 500
+	tags: juanbeag
+	spriteid: FNFGUNS4 5 +
+	stack_max: 7
 	stack_as_charges: 1
-	chargename: Energy
-	laser_type: 2
-	gun_muzzle_height: 2
-	boom_factor: 1.35
-	spread_factor: 1
-	shot_power: 1.35
-	cooldown: 0.3
-	power: 0.6
-	knockback: 0.7
-	lengthscale: 0.5
-	shot_knockback: 1
-	ammo_max: 60
-	skill_angle_range: 35
-	pointblank_mid
-	reload: 0.2
+	chargename: Bullets
 	func: WEAPON_FUNC_SHOOT
-	
-mission{
-thing-event: driftpist-events
-	eventid THING_EVENT_SHOOT = if
-		sfx{ fm_sweep A0 32 * fx .ramp_start! B0 4 * fx .ramp_end! 55 freq! 0 duty2! 0 duty!
-			350 d!
-			0.8 1.1 frnd pitch!
-			0.65 scale!
-			me .adjust-vol }
-	then
-;
-}
-	wielder_handler: last
-
-} : #driftpist driftpist weapondef{ .item.charges! } ;
-: driftpist 45 #driftpist ;
-weapondef{
-
-custom: Energy shotgun
-	tags: driftshot
-	spriteid: FNFSGUNS 4 +
-	stack_max: 15
-	stack_as_charges: 1
-	chargename: Energy
-	cock_sound: 2
-	laser_type: 2
 	gun_muzzle_height: 3
-	boom_factor: 2.2
-	shot_power: 0.4
-	spread_factor: 7
-	reload: 0.52
-	power: 0.40
-	knockback: 1
-	lengthscale: 0.5
-	melee_windup_angle: 0
-	melee_end_angle: 225
-	melee_reach: -16
-	projectiles: 8
-	shot_knockback: 0.7
-	ammo_max: 60
-	skill_angle_range: 35
-	pointblank_near
-	
-	func: WEAPON_FUNC_SHOOT
-	
-mission{
-thing-event: driftshot-events
-	eventid THING_EVENT_SHOOT = if
-		sfx{ fm_sweep A0 32 * fx .ramp_start! B0 4 * fx .ramp_end! 45 freq! 0 duty2! 0 duty!
-			350 d!
-			0.5 0.9 frnd pitch!
-			0.65 scale!
-			me .adjust-vol }
-	then
-;
-}
-	wielder_handler: last
-
-} : #driftshot driftshot weapondef{ .item.charges! } ;
-: driftshot 15 #driftshot ;
-weapondef{
-
-custom: Laser pistol
-	weapon: laserpistol
-	spriteid: FNFSGUNS 5 +
-	gun_muzzle_height: 5
-	ammo_type: LOOT_GAS
-	spread_factor: 0
-	reload: 0.5
-	power: 0.4
-	knockback: 0.5
-	melee_break_scale: 0
-	shot_knockback: 1
-	shot_power: 1.6
-	lengthscale: 0.5
-	shoot_thru: 2
-	func: WEAPON_FUNC_SHOOT
 	auto_eject: 1
-	ammo_max: 80
-	skill_angle_range: 10
-	pointblank_mid
-	
-mission{
-thing-event: laserpistol-events
-	eventid THING_EVENT_SHOOT = if
-		sfx{ fm_sweep 2500 2 a! ramp_start! 750 ramp_end! 70 freq! 0 duty2! 0 duty!
-			350 d!
-			0.3 0.5 frnd pitch!
-			0.65 scale!
-			me .adjust-vol }
-	then
-;
-}
-	wielder_handler: last
-	
-	: plaguecloud args( me )
-		3 for 
-			particle{ new <- me .pos pos!
-				0.43 0.55 0.13 rgb!
-				particles_base_id 0x 2c + spriteid!
-				60 5 / i 1- * wait!
-				rndsign 2 * rotate!
-				0 360 frnd anglexy 0.2 xymul vel!
-				vel@ 25 * pos@ xyadd pos!
-				60 ticks! 45 fade_in! 45 fade_out!
-				3 scale!
-				0.99 grow!
-			}
-		next
-	;
-
-	: plaguecloud-handler 0 args( me eventid cur )
-		<- eventid THING_EVENT_TIMER <> if then;
-		<- me plaguecloud
-		<- me .anim.info@ 1- <- me .anim.info!
-		<- me .anim.info@ 1 < if <- me silentkillit then;
-		15 <- me .timer!
-
-		<- me .pos <- me .rad.x@ things-in-xyrad
-
-		depths for -1 picks .typeid@ THING_ZOMBIE = if 
-				-1 picks dup .hitpoints@ 1 - swap .hitpoints!
-				-1 picks 10 swap .shudder!
-				sfx{ -10 nextpri noise freq@ 2 * freq! 1 freq2! 0.5 1 frnd pitch!
-					1000 filt_high!
-					-1 picks .adjust-vol // 25 a!
-				}
-			then
-			pops drop
-		next
-		drop
-	;
-
-	: plaguespawn args( me )
-		spawn ' plaguecloud-handler lt .events! lt .invisible
-		<- me thing# lt .throwerid!
-		<- me lt-to-thing
-
-		35 lt .rad.x!
-		1 lt .timer!
-		50 lt .anim.info!
-	;
-	
-	: plaguecloudmini args( me )
-		2 for 
-			particle{ new <- me .pos pos!
-				0.43 0.55 0.13 rgb!
-				particles_base_id 0x 2c + spriteid!
-				30 5 / i 1- * wait!
-				rndsign 2 * rotate!
-				0 360 frnd anglexy 0.2 xymul vel!
-				vel@ 10 * pos@ xyadd pos!
-				25 ticks! 20 fade_in! 20 fade_out!
-				1.5 scale!
-				0.99 grow!
-			}
-		next
-	;
-	
-	: plaguecloudmini-handler 0 args( me eventid cur )
-		<- eventid THING_EVENT_TIMER <> if then;
-		<- me plaguecloudmini
-		<- me .anim.info@ 1- <- me .anim.info!
-		<- me .anim.info@ 1 < if <- me silentkillit then;
-		25 <- me .timer!
-
-		<- me .pos <- me .rad.x@ things-in-xyrad
-
-		depths for -1 picks .typeid@ THING_ZOMBIE = if 
-				-1 picks dup .hitpoints@ 1 - swap .hitpoints!
-				-1 picks 10 swap .shudder!
-				sfx{ -10 nextpri noise freq@ 2 * freq! 1 freq2! 0.5 1 frnd pitch!
-					1000 filt_high!
-					-1 picks .adjust-vol // 25 a!
-				}
-			then
-			pops drop
-		next
-		drop
-	;
-
-	: plaguespawnmini args( me )
-		spawn ' plaguecloudmini-handler lt .events! lt .invisible
-		<- me thing# lt .throwerid!
-		<- me lt-to-thing
-
-		10 lt .rad.x!
-		1 lt .timer!
-		2 lt .anim.info!
-	;
-	
-custom: Plague grenade
-	weapon: pdnade
-	spriteid: FNFSGUNS 6 +
-	power: 0
-	melee_thrown: 1
-	melee_thrown_lob: 2
-	stack_max: 6
-	no_ai_use: 1
-
-mission{
-
-thing-event: plaguegrenade-events
-	eventid THING_EVENT_THROW = if
-		me .anim.counter@ 0= if
-			200 me .timer!
-		then
-		1 me .mass!
-		15 me .hitpoints!
-		1 me .lob_mode!
-		0.1 me .mass!
-		1 me .no_hit!
-		90 me .flipx * me .rot!
-		1 me .item.locked!
-		me .vel xynorm 1 ( <- change this number for shorter/longer throw ) xymul me .vel!
-		me .vel.z@ 0.75 - me .vel.z! // A bit extra lob
-		then
-
-	eventid THING_EVENT_BOUNCE = if
-		sfx{ noise 0.8 freq! 3000 freq2! 2500 filt_high! 50 a! 500 d! 0.9 s! 50 r! 0.5 scale! me .adjust-vol }
-		me plaguespawnmini
-	then
-	
-	eventid THING_EVENT_TIMER = if
-		sfx{ noise 0.8 freq! 3000 freq2! 2500 filt_high! 50 a! 500 d! 0.9 s! 50 r! 0.5 scale! me .adjust-vol }
-		sfx{ thump 0.2 s! 500 r! 100 filt! 0.9 q! me .adjust-vol }
-		me plaguespawnmini
-		me plaguespawn
-		me silentkillit
-	then
-	
-;
-
-	melee_thrown_handler: last
-}
-	
-	: stuncloudmini args( me )
-		2 for 
-			particle{ new <- me .pos pos!
-				0.83 0.8 0.33 rgb! glowy
-				particles_base_id 0x 2c + spriteid!
-				30 5 / i 1- * wait!
-				rndsign 2 * rotate!
-				0 360 frnd anglexy 0.2 xymul vel!
-				vel@ 10 * pos@ xyadd pos!
-				25 ticks! 20 fade_in! 20 fade_out!
-				1.5 scale!
-				0.99 grow!
-			}
-		next
-	;
-	
-	: stuncloudmini-handler 0 args( me eventid cur )
-		<- eventid THING_EVENT_TIMER <> if then;
-		<- me stuncloudmini
-		<- me .anim.info@ 1- <- me .anim.info!
-		<- me .anim.info@ 1 < if <- me silentkillit then;
-		25 <- me .timer!
-	;
-
-	: stunspawnmini args( me )
-		spawn ' stuncloudmini-handler lt .events! lt .invisible
-		<- me thing# lt .throwerid!
-		<- me lt-to-thing
-
-		10 lt .rad.x!
-		1 lt .timer!
-		1 lt .anim.info!
-	;
-	
-custom: Stun grenade
-	weapon: pdsnade
-	spriteid: FNFSGUNS 6 +
-	power: 0
-	melee_thrown: 1
-	melee_thrown_lob: 2
-	stack_max: 12
-	no_ai_use: 1
-
-mission{
-
-thing-event: stungrenade-events
-	eventid THING_EVENT_THROW = if
-		me .anim.counter@ 0= if
-			100 me .timer!
-		then
-		1 me .mass!
-		15 me .hitpoints!
-		1 me .lob_mode!
-		0.1 me .mass!
-		1 me .no_hit!
-		90 me .flipx * me .rot!
-		1 me .item.locked!
-		me .vel xynorm 1 ( <- change this number for shorter/longer throw ) xymul me .vel!
-		me .vel.z@ 0.75 - me .vel.z! // A bit extra lob
-		then
-
-	eventid THING_EVENT_BOUNCE = if
-		sfx{ noise 0.8 freq! 3000 freq2! 2500 filt_high! 50 a! 500 d! 0.9 s! 50 r! 0.5 scale! me .adjust-vol }
-		me stunspawnmini
-	then
-	
-	eventid THING_EVENT_TIMER = if
-		sfx{ noise 0.8 freq! 3000 freq2! 2500 filt_high! 50 a! 500 d! 0.9 s! 50 r! 0.5 scale! me .adjust-vol }
-		sfx{ thump 0.2 s! 500 r! 100 filt! 0.9 q! 2.5 scale! }
-		-100 fade_to 1 1 1 fade_clr 55 fade_count!
-		me .pos 0 xypowboomb -1 lt .hitcheck.blast! sfx{ 6 pitch@ * pitch! }
-		1 3 for
-		me .pos3
-			particle{
-				new pos3!
-				particles32_base_id 3 + spriteid!
-				-1 *
-				0.25 1 frnd over * 8 * pos.x@ + pos.x!
-				-1 1 frnd 8 * pos.y@ + pos.y!
-				-0.25 -0.5 frnd vel.z!
-				0.99 grow!
-				0.9 1.1 frnd scale!
-				5 fade_in!
-				15 fade_out!
-				90 0 15 rnd + ticks!
-				0.5 clr.r!
-				0.25 0.35 frnd clr.g!
-				1 clr.b!
-				0.25 -0.25 frnd vel.x!
-				3 scale! 0 vel.z! 1 clr.r! 1 clr.g! 1 clr.b! 0.75 grow! glowy
-				particles32_base_id 1+ spriteid!
-				15 ticks!
-				i 2 * wait!
-			}
-		next
-		me stunspawnmini
-		me silentkillit
-	then
-	
-;
-
-	melee_thrown_handler: last
-}
-
-	: bleachcloud args( me )
-		4 for 
-			particle{ new <- me .pos pos!
-				0.78 0.78 0.78 rgb!
-				particles_base_id 0x 2c + spriteid!
-				20 5 / i 1- * wait!
-				rndsign 2 * rotate!
-				0 360 frnd anglexy 0.2 xymul vel!
-				vel@ 25 * pos@ xyadd pos!
-				15 ticks! 7 fade_in! 7 fade_out!
-				1 scale!
-				0.99 grow!
-			}
-		next
-	;
-
-	: bleachcloud-handler 0 args( me eventid cur )
-		<- eventid THING_EVENT_TIMER <> if then;
-		<- me .anim.info@ 1- <- me .anim.info!
-		<- me .anim.info@ 1 < if <- me silentkillit then;
-		5 <- me .timer!
-
-		<- me .pos <- me .rad.x@ things-in-xyrad
-
-		depths for -1 picks .typeid@ THING_ZOMBIE = if 
-				-1 picks dup .hitpoints@ 2 - swap .hitpoints!
-				-1 picks 10 swap .shudder!
-				sfx{ -10 nextpri noise freq@ 2 * freq! 1 freq2! 0.5 1 frnd pitch!
-					1000 filt_high!
-					-1 picks .adjust-vol // 25 a!
-				}
-			then
-			pops drop
-		next
-		drop
-	;
-
-	: bleachspawn args( me )
-		spawn ' bleachcloud-handler lt .events! lt .invisible
-		<- me thing# lt .throwerid!
-		<- me lt-to-thing
-		<- me bleachcloud
-
-		20 lt .rad.x!
-		1 lt .timer!
-		7 lt .anim.info!
-	;
-	
-custom: Bleach
-	spriteid: FNFSGUNS 7 +
-	power: 0
-	melee_thrown: 1
-	melee_thrown_lob: 2
-	stack_max: 25
-	melee_range_hint: 75
-	melee_range_min_hint: 60
-
-mission{
-
-thing-event: bleach-events
-	eventid THING_EVENT_THROW = if
-		1 me .timer!
-		1 me .mass!
-		15 me .hitpoints!
-		1 me .lob_mode!
-		0.1 me .mass!
-		1 me .no_hit!
-		12 me .rad.z!
-		-20 me .flipx * me .rot!
-		1 me .item.locked!
-		me .vel xynorm 1 ( <- change this number for shorter/longer throw ) xymul me .vel!
-		me .vel.z@ 0.75 - me .vel.z! // A bit extra lob
-	then
-
-	eventid THING_EVENT_BREAK = if
-		6 me .smashybits
-	then
-
-	eventid THING_EVENT_TIMER = if
-		1 me .timer!
-		me .rot@ 0.5 * me .angle@ + me .angle!
-	then
-
-	eventid THING_EVENT_BOUNCE = if
-		me .timer@ if
-			me bleachspawn
-			me .sploosh
-			me .smack me killit
-		then
-
-	then
-	
-;
-
-	melee_thrown_handler: last
-}
-
-			: bleached args( me )
-			sfx{ noise 20 fx .freq! 750 fx .freq2! 15 fx .a! 750 fx .d! 1.5 2.3 frnd fx .pitch! 0.25 fx .scale! }
-				particle{ new <- me .pos pos!
-					0.78 0.78 0.78 rgb!
-					particles_base_id 0x 14 + spriteid!
-					1 1- 9 * wait!
-					<- me .aim_angle@ -30 30 frnd + dup angle! anglexy 1.5 xymul vel!
-					vel@ 8 * pos@ xyadd pos!
-					rndsign 2 * rotate!
-					2 pos.z!
-					0.8 scale!
-					21 ticks! 14 fade_in! 17 fade_out!
-				}
-				particle{ new <- me .pos pos!
-					0.78 0.78 0.78 rgb!
-					particles_base_id 0x 15 + spriteid!
-					1 1- 7 * wait!
-					<- me .aim_angle@ 10 -10 frnd + dup angle! anglexy 1.5 xymul vel!
-					vel@ 7 * pos@ xyadd pos!
-					rndsign 2 * rotate!
-					2 pos.z!
-					0.8 scale!
-					17 ticks! 12 fade_in! 14 fade_out!
-				}
-				particle{ new <- me .pos pos!
-					0.78 0.78 0.78 rgb!
-					particles_base_id 0x 17 + spriteid!
-					1 1- 6 * wait!
-					<- me .aim_angle@ 5 -5 frnd + dup angle! anglexy 1.5 xymul vel!
-					vel@ 6 * pos@ xyadd pos!
-					rndsign 2 * rotate!
-					2 pos.z!
-					0.8 scale!
-					16 ticks! 10 fade_in! 13 fade_out!
-				}
-		;
-	
-	: bleachmelee-handler args( me eventid )
-		<- eventid THING_EVENT_SWING <> if then;
-			<- me bleached
-	;
-custom: More Bleach
-	tags: melblch
-	spriteid: FNFSGUNS 7 +
-	power: 0.6
-	knockback: 0.5
-	cooldown: 0.5
-	leaning: -0.5
-	melee_off.x: -2
-	melee_off.y: -2
-	melee_start_angle: 15
-	melee_windup_angle: -35
-	melee_shift.x: -3
-	melee_end_angle: 10
-	melee_weapon_angle: 10
-	melee_retract: 0.7
-	melee_aiming: 1
-	melee_shift.x: 2
-	melee_shift.y: -1
-	melee_aiming: 1
-	melee_reach: 6
-	melee_range: 8
-	melee_break_scale: 0
-	melee_extra_hits: 1
-	swoosh_particle1: 0x a0
-	swoosh_particle2: 0x a0
-	swoosh_range: 2
-	thrust_range: 3
-	swoosh_vel: 0.5
-	wielder_handler: ' bleachmelee-handler
-	lightcooldown
-	half-fatigue
-	wepscorebonus
-
-custom: Flashbang
-	spriteid: FNFGUNS2 4 +
-	power: 0
-	melee_thrown: 1
-	melee_thrown_lob: 2
-	stack_max: 12
-	no_ai_use: 1
-
-mission{
-
-thing-event: flashbang-events
-	eventid THING_EVENT_THROW = if
-		me .anim.counter@ 0= if
-			80 me .timer!
-		then
-		1 me .mass!
-		15 me .hitpoints!
-		1 me .lob_mode!
-		0.1 me .mass!
-		1 me .no_hit!
-		90 me .flipx * me .rot!
-		1 me .item.locked!
-		me .vel xynorm 1 ( <- change this number for shorter/longer throw ) xymul me .vel!
-		me .vel.z@ 0.75 - me .vel.z! // A bit extra lob
-		then
-
-	eventid THING_EVENT_BOUNCE = if
-		me .angle@ me .rot@ + me .angle!
-	then
-	
-	eventid THING_EVENT_TIMER = if
-		sfx{ thump 0.2 s! 500 r! 100 filt! 0.9 q! 4 scale! }
-		-100 fade_to 1 1 1 fade_clr 55 fade_count!
-		me .pos 0 xypowboomb -1 lt .hitcheck.blast! sfx{ 6 pitch@ * pitch! }
-		1 4 for
-		me .pos3
-			particle{
-				new pos3!
-				particles32_base_id 3 + spriteid!
-				-1 *
-				0.25 1 frnd over * 8 * pos.x@ + pos.x!
-				-1 1 frnd 8 * pos.y@ + pos.y!
-				-0.25 -0.5 frnd vel.z!
-				0.99 grow!
-				0.9 1.1 frnd scale!
-				5 fade_in!
-				15 fade_out!
-				90 0 15 rnd + ticks!
-				0.5 clr.r!
-				0.25 0.35 frnd clr.g!
-				1 clr.b!
-				0.25 -0.25 frnd vel.x!
-				3 scale! 0 vel.z! 1 clr.r! 1 clr.g! 1 clr.b! 0.75 grow! glowy
-				particles32_base_id 1+ spriteid!
-				15 ticks!
-				i 2 * wait!
-			}
-		next
-		me silentkillit
-	then
-	
-;
-
-	melee_thrown_handler: last
-}
-
-custom: Inciendiary grenade
-	tags: incendnade
-	spriteid: FNFGUNS2 5 +
-	power: 0
-	melee_thrown: 1
-	melee_thrown_lob: 2
-	stack_max: 5
-	no_ai_use: 1
-
-mission{
-
-	: incendsplash spawn lt args( thing )
-		42 lt .spriteid!
-		me .pos lt .pos!
-		1 lt .nocollide!
-		1 lt .no_hit!
-		100 lt .flammability!
-		0 lt .spriteid!
-		splash-vel
-		lt .gravity@ 0.5 * lt .gravity!
-		8 lt .rad.x!
-		16 lt .rad.z!
-		mission{ ' flamebitz } lt .events!
-		1 lt .timer!
-		3 lt .hitpoints!
-
-		// Old values
-		// 60 lt .anim.counter! // Minimum burn time of molotov + 60s
-		// 8 lt .rad.x!			// Area of effect for burning
-
-		800 lt .anim.counter! // was 180 before, then 360
-		24 lt .rad.x! // Was 16 before, tried 24 but seemed too big
-
-		sfx{
-			noise me .adjust-vol 100 fx .a! 0.5 0.75 frnd fx .pitch!
-			50 500 frnd fx .filt!
-			0 0.5 fx .q!
-		}
-	;
-
-thing-event: incendnade-events
-	eventid THING_EVENT_THROW = if
-		me .anim.counter@ 0= if
-			120 me .timer!
-		then
-		1 me .mass!
-		15 me .hitpoints!
-		1 me .lob_mode!
-		0.1 me .mass!
-		1 me .no_hit!
-		90 me .flipx * me .rot!
-		1 me .item.locked!
-		me .vel xynorm 1.4 ( <- change this number for shorter/longer throw ) xymul me .vel!
-		me .vel.z@ 0.75 - me .vel.z! // A bit extra lob
-		then
-
-	eventid THING_EVENT_BOUNCE = if
-		me .angle@ me .rot@ + me .angle!
-	then
-
-	eventid THING_EVENT_TIMER = if
-		6 for me incendsplash next
-		me silentkillit
-	then
-; }
-	melee_thrown_handler: last
-} : incendnade incendnade mission{ ' incendnade-events } lt .events! 100 lt .flammability! ; weapondef{
-	
-// fnf special melee
-
-WEAPON_BASEBALL clone-to: Cutlass
-	weapon: cutlassb
-	spriteid: FNFSMELEE
-	knockback: 0.75
-	power: 2.2
-	cooldown: 0.75
-	melee_off.x: 8
-	melee_off.y: -13
-	melee_reach: -8
-	melee_range: 7
-	melee_start_angle: -35
-	melee_windup_angle: -15
-	melee_end_angle: -135
-	melee_shift.y: 7
-	melee_break_scale: 0
-	melee_extra_hits: 1
-	wepscorebonus
-	
-WEAPON_FIRE clone-to: Lizzie's Axe
-	weapon: benchaxe
-	spriteid: FNFSMELEE 1 +
-	knockback: 1
-	power: 2
+	cock_sound: 2
+	boom_factor: 5
+	projectiles: 4
+	spread_factor: 0
+	shot_power: 420
+	reload: 1.5
 	cooldown: 1
-	melee_extra_hits: 3
-	melee_extra_chance: 0.5
-	
-custom: Amputation Knife
-	tags: amputation
-	spriteid: FNFSMELEE 2 +
-	power: 1.35
-	knockback: 0.1
-	melee_start_angle: 60
-	melee_windup_angle: 90
-	melee_end_angle: -120
-	melee_weapon_angle: -120
-	melee_reach: 10
-	melee_shift.x: -4
-	melee_off.x: 4
-	melee_off.y: -1
+	power: 0.6
+	knockback: 0.7
+	lengthscale: 0.5
+	shot_knockback: 5
+	ammo_max: 7
+	skill_angle_range: 45
+	shoot_thru: 1337
+	shoot_thru_scale: 100
 	melee_break_scale: 0
-	lightcooldown
+	pointblank_far
+	ai_mule
 	
-WEAPON_BASEBALL clone-to: Crystal sword
-	weapon: driftsword
-	spriteid: FNFSMELEE 3 +
-	knockback: 0.25
-	power: 1.75
-	cooldown: 0.3
-	melee_off.x: 4
-	melee_off.y: -7
-	melee_reach: -8
-	melee_range: 7
-	melee_start_angle: -35
-	melee_windup_angle: 25
-	melee_end_angle: -145
-	melee_shift.x: 0
-	melee_shift.y: 3
-	melee_break_scale: 0
-	melee_extra_hits: 1
-	lightcooldown
-	wepscorebonus
-	
-custom: Karambit
-	spriteid: FNFSMELEE 4 +
-	power: 1.2
-	knockback: 0.6
-	cooldown: 0.5
-	melee_break_scale: 0
-
-	melee_start_angle: -220
-	melee_windup_angle: -250
-	melee_end_angle: 120 360 +
-
-	melee_shift.x: -7
-	melee_shift.y: 2
-
-	lightcooldown
 mission{
-	thing-event: karambit-events
-		eventid THING_EVENT_SWING = if
-			sfx{ ringmod me .adjust-vol 30 delay! 25 d! 3.75 4.25 frnd pitch!
-			freq@ 1.2 * freq2! 0.1 s! 250 r! scale@ 0.5 * scale! }
-		then
-	;
+thing-event: juanbeag-events
+	eventid THING_EVENT_SHOOT = if
+		me .pos
+		particle{
+			new pos!
+			35 ticks!
+			1 scale!
+			weapons_base_id FNFGUNS4 + 6 + spriteid!
+			rndsign 2 * rotate!
+			-3 -4 frnd vel.z!
+			-1 1 frnd vel.x!
+			-1 1 frnd vel.y!
+			me .aim_angle@ -15 15 frnd + angle!
+			0.2 accel.z!
+		}
+		
+		
+		me .aim_angle@ anglexy -1.7 xymul me .vel xyadd me .vel!
+		15 rumble
+	then
+;
 }
 	wielder_handler: last
 	
-custom: Switchblade comb
-	tags: switchcomb
-	spriteid: FNFSMELEE 5 +
-	power: 1
-	knockback: 0.6
-	cooldown: 0.5
-	melee_reach: 10
-	lightcooldown
-	melee_extra_hits: 1
-	melee_extra_chance: 1
-	melee_break_scale: 0
-	half-fatigue
+} : #juanbeag juanbeag weapondef{ .item.charges! } ;
+: juanbeag 7 #juanbeag ; weapondef{
+
+// FNF still special melee 8)
+
+	: rolled args( me )
+		sfx{ thump 12 delay! 0.5 fx .scale! 1000 fx .filt! 0.25 1 frnd fx .pitch! <- me .adjust-vol }
+	;
 	
-WEAPON_BASEBALL clone-to: May's bat
-	tags: maebat
-	spriteid: FNFSMELEE 6 +
-	knockback: 2
-	power: 1
-	cooldown: 0.75
-	melee_break_scale: 0
+	: roller-handler args( me eventid )
+		<- eventid THING_EVENT_SWING <> if then;
+			<- me rolled
+	;
 	
-WEAPON_BASEBALL clone-to: May's bat
-	tags: astralbat
-	spriteid: FNFSMELEE 7 +
-	knockback: 3.5
-	power: 2.5
-	cooldown: 0.6
-	lightcooldown
-	melee_break_scale: 0
-	
-custom: Chainsaw
-	weapon: coachsaw
-	spriteid: FNFSMELEE 8 +
-	fuel_type: LOOT_GAS
-	power: 0.5
-	special_power: 2
-	special_knockback: 0.75
-	knockback: 1
-	cooldown: 1.25
-	melee_start_angle: -85
-	melee_windup_angle: -180
-	melee_end_angle: 90
-	func: WEAPON_FUNC_CHAINSAW
-	melee_break_scale: 0.10
-	no_ai_use: 1
-	burn_active: 20
-	burn_idle: 80
-	
-custom: Bonecrusher
-	spriteid: FNFSMELEE 12 +
-	knockback: 2
-	power: 2.5
-	cooldown: 0.8
-	melee_break_scale: 0
-	melee_extra_hits: 1
-	melee_extra_chance: 0.7
-	wepscorebonus
-	
-custom: Sign shield
-	tags: bannershield
-	spriteid16x32: 14
-	knockback: 5.5
-	power: 0.8
-	cooldown: 0.7
-	melee_break_scale: 0
-	leaning: -0.7
-	melee_windup_angle: -270
-	melee_start_angle: -160
-	melee_end_angle: -45
-	melee_weapon_angle: 90
-	melee_shift.y: 0
+custom: Carbon roller
+	tags: croller
+	spriteid16x32: 18
+	power: 2.2
+	knockback: 3
+	cooldown: 1.1
+	melee_off.x: -2
+	melee_off.y: 0
+	melee_start_angle: 10
+	melee_windup_angle: 90
+	melee_end_angle: -5
+	melee_weapon_angle: -5
+	melee_retract: 0.9
+	melee_aiming: 1
+	melee_shift.y: -2
+	melee_off.x: 0
+	melee_aiming: 1
 	melee_reach: 6
-	melee_range: 13
+	melee_range: 3
+	
+	melee_shift.x: -3
 	melee_break_scale: 0
 	melee_extra_hits: 2
-	
-custom: Diamond sword
-	tags: mcsword
-	spriteid16x32: 15
-	power: 1.75
-	cooldown: 0.9
-	melee_shift.x: 1
-	melee_off.x: -3
-	melee_off.y: -1
-	melee_windup_angle: 25
-	melee_start_angle: 0
-	melee_end_angle: -165
-	melee_break_scale: 0
-	melee_extra_hits: 1
-	melee_extra_chance: 0.5
-	lightcooldown
+	wielder_handler: ' roller-handler
 	wepscorebonus
+	// FNF TODO: alt attack?
 	
+WEAPON_MEGASPIKEDBAT clone-to: Faulty stick grenade
+	weapon: stielwhack
+	spriteid: FNFGUNS4 8 +
+	power: 1.5
+
+
 }
 // End of defs
-

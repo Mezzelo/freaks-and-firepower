@@ -258,6 +258,20 @@ random-sayings-base shuffles var random-sayings
 
 : new-recruit new-camper camprecruit-last-npc ;
 
+// HUMERUS
+
+: familiarrecruit-last-npc lt .character@ args( ch )
+	' trader-event lt .events!
+	1 lt .timer!
+
+	lt-here
+
+	camprecruit-drawpair-familiar
+	lt .cyoa! <- ch swap execute
+;
+
+: new-familiar-recruit new-camper familiarrecruit-last-npc ;
+
 0 value camprecruit-spawned
 
 : new-camper-or-recruit
@@ -512,7 +526,7 @@ random-sayings-base shuffles var random-sayings
 	' strength-events <- chara .thing@ .events!
 	90 <- chara .thing@ .repeating_timer
 
-	dumbrack <- trader .pos lt .pos!
+	dumbrack <- trader .pos lt .pos! 1 movey
 	olympicbar <- trader .pos lt .pos! 8 rdrift 1 lt .no_hit!
 
 	// Concrete slab to get swole on
@@ -646,7 +660,7 @@ random-sayings-base shuffles var random-sayings
 
 : trader-fanatic-stand dup .character@ args( trader chara )
 	WEAPON_CHAINSAW <- chara .weapona!
-	WEAPON_CHAINSAW <- chara .weapon_nodropa!
+	1 <- chara .weapon_nodropa!
 	1 <- chara .carrying.slot_count!
 	1 <- chara .female!
 	21 <- chara .hairtype!
@@ -657,7 +671,6 @@ random-sayings-base shuffles var random-sayings
 
 : trader-shotgun-stand dup .character@ args( trader chara )
 	0 <- chara .female!
-	1 <- chara .carrying.slot_count!
 	WEAPON_SHOTGUN <- chara .weapona!
 	1 LOOT_SHOTGUN_SHELL <- chara .lootamt!
 	indcrate <- trader .pos lt .pos! immovable
@@ -666,7 +679,6 @@ random-sayings-base shuffles var random-sayings
 : trader-rifle-stand dup .character@ args( trader chara )
 	1 <- chara .female!
 	0 <- chara .bodytype!
-	1 <- chara .carrying.slot_count!
 	WEAPON_RIFLE <- chara .weapona!
 	indcrate <- trader .pos lt .pos! immovable
 ;
@@ -674,9 +686,8 @@ random-sayings-base shuffles var random-sayings
 : trader-firearms-stand dup .character@ args( trader chara )
 	0 <- chara .female!
 	10 <- chara .hattype!
-	1 <- chara .carrying.slot_count!
 	WEAPON_MINIGUN <- chara .weapona!
-	WEAPON_MINIGUN <- chara .weapon_nodropa!
+	1 <- chara .weapon_nodropa!
 	1 LOOT_RIFLE_SHELL <- chara .lootamt!
 	covered-boxes <- trader .pos lt .pos! immovable
 ;
@@ -686,7 +697,7 @@ random-sayings-base shuffles var random-sayings
 	10 73 rnd <- chara .specialhead!
 	// TODO: Get art for the strange figure?
 	WEAPON_FIRE <- chara .weapona!
-	WEAPON_FIRE <- chara .weapon_nodropa!
+	1 <- chara .weapon_nodropa!
 	indcrate <- trader .pos lt .pos! immovable
 ;
 
@@ -702,63 +713,55 @@ random-sayings-base shuffles var random-sayings
 	3 for indcrate <- trader .pos lt .pos! immovable drift next
 ;
 
-: trader-rare-coldsteel-stand dup .character@ args( trader chara )
-	<- chara .lynnify
-	pictable <- trader .pos lt .pos! immovable drift
-;
-
-: trader-rare-skelknight-stand dup .character@ args( trader chara )
-	<- chara .skelknightify
-	6 for skel <- trader .pos lt .pos! immovable drift next
-	bombskull <- trader .pos lt .pos! .drift
-;
-
-: trader-rare-raes-stand dup .character@ args( trader chara )
-	<- chara .phillify
-	pictable <- trader .pos lt .pos! immovable drift
-;
+// FNF TRADERS
 
 : trader-pistol-stand dup .character@ args( trader chara )
 	0 <- chara .female!
-	-108 <- chara .specialbody!
+	FNFSC 6 + <- chara .specialtype!
 	1 <- chara .carrying.slot_count!
-	8 <- chara .hattype!
-	WEAPON_TEC <- chara .weapona!
-	WEAPON_TEC <- chara .weapon_nodropa!
+	WEAPON_JUANMINI <- chara .weapona!
+	6 <- chara .shooting!
+	1 STAT_SHOOTING <- chara .bonus!
 	1 <- chara .carrying.slot_count!
-	15 LOOT_BULLET <- chara .lootamt!
+	15 LOOT_RIFLE_SHELL <- chara .lootamt!
 ;
 
 : trader-swat-stand dup .character@ args( trader chara )
 	0 <- chara .female!
-	-118 <- chara .specialtype!
+	FNFSC <- chara .specialtype!
 	WEAPON_PCARBINE <- chara .weapona!
 	WEAPON_PCARBINE <- chara .weapon_nodropa!
 	1 <- chara .carrying.slot_count!
+	3 <- chara .shooting!
 	10 LOOT_RIFLE_SHELL <- chara .lootamt!
 	covered-boxes <- trader .pos lt .pos! immovable
 ;
 
 : trader-modmelee-stand dup .character@ args( trader chara )
 	0 <- chara .female!
-	-110 <- chara .specialbody!
-	WEAPON_POOLSPEAR <- chara .weapona!
+	FNFSC 1 + <- chara .specialbody!
+	WEAPON_SPIKEDBAT <- chara .weapona!
 	1 <- chara .carrying.slot_count!
+	cinderblock <- trader .pos lt .pos! -1 movey immovable
+	chair <- trader .pos lt .pos! -1.5 movey 1 movex immovable
+	2 for indcrate <- trader .pos lt .pos! 1 movey immovable next
+	map{ xyp.x 2 - xyp.y 2 - xyp.x 2 + xyp.y 2 + LAYER_FLOORTOP min-layer! conclot }
 ;
 
 : trader-modranged-stand dup .character@ args( trader chara )
 	1 <- chara .female!
-	-109 <- chara .specialbody!
-	WEAPON_FUDERPOWER <- chara .weapona!
-	WEAPON_FUDERPOWER <- chara .weapon_nodropa!
-	4 LOOT_FOOD <- chara .lootamt!
+	FNFSC 2 + <- chara .specialbody!
+	8 <- chara .hattype!
+	WEAPON_COMICALPISTOL <- chara .weapona!
 	19 <- chara .stackeda!
+	WEAPON_COMICALPISTOL <- chara .weapon_nodropa!
 	1 <- chara .carrying.slot_count!
 ;
 
 : trader-pyro-stand dup .character@ args( trader chara )
 	1 <- chara .female!
-	110 <- chara .specialtype!
+	FNFSC 9 + <- chara .specialtype!
+	1 <- chara .headoff.y!
 	1 <- chara .carrying.slot_count!
 	"Fireproof" <- chara .trait!
 	0 <- chara .thing@ .flammability!
@@ -768,11 +771,12 @@ random-sayings-base shuffles var random-sayings
 		bbqtank <- trader .pos lt .pos! immovable drift
 	next
 	indcrate <- trader .pos lt .pos! immovable
+	map{ xyp.x 2 - xyp.y 2 - xyp.x 2 + xyp.y 2 + LAYER_FLOORTOP min-layer! conclot }
 ;
 
 : trader-demolition-stand dup .character@ args( trader chara )
-	0 <- chara .female!
-	-107 <- chara .specialtype!
+	1 <- chara .female!
+	FNFSC 3 + <- chara .specialtype!
 	1 <- chara .carrying.slot_count!
 	6 <- chara .vitality!
 	6 <- chara .health!
@@ -780,9 +784,111 @@ random-sayings-base shuffles var random-sayings
 	1 <- chara .stackeda!
 	2 for
 		bbqtank <- trader .pos lt .pos! immovable drift
+		bbqtank <- trader .pos lt .pos! immovable
+		0x 92 special_objects32_base_id + lt .spriteid! // Box of pipebombs!
+	next
+;
+
+: trader-smg-stand dup .character@ args( trader chara )
+	0 <- chara .female!
+	FNFSC 11 + <- chara .specialtype!
+	WEAPON_HSMG <- chara .weapona!
+	6 <- chara .shooting!
+	15 LOOT_BULLET <- chara .lootamt!
+	1 <- chara .carrying.slot_count!
+	
+	2 for
+		indcrate <- trader .pos lt .pos! immovable
+	next		
+	bbqtank <- trader .pos lt .pos! immovable
+	0x 92 special_objects32_base_id + lt .spriteid! // Box of pipebombs!
+;
+
+: trader-sports-stand dup .character@ args( trader chara )
+	0 <- chara .female!
+	FNFSC 8 + <- chara .specialtype!
+	WEAPON_CRICKET <- chara .weapona!
+	5 <- chara .strength!
+	3 <- chara .fitness!
+	4 <- chara .vitality!
+	4 <- chara .health!
+	1 <- chara .carrying.slot_count!
+	treadmill <- trader .pos lt .pos! 1 movex immovable
+	map{ xyp.x 2 - xyp.y 2 - xyp.x 2 + xyp.y 2 + LAYER_FLOORTOP min-layer! conclot }
+;
+
+: trader-knives-stand dup .character@ args( trader chara )
+	1 <- chara .female!
+	FNFSC 4 + <- chara .specialtype!
+	WEAPON_BOXCUTTER <- chara .weapona!
+	6 <- chara .strength!
+	6 <- chara .fitness!
+	1 <- chara .carrying.slot_count!
+
+	stretcher <- trader .pos lt .pos!
+	0x 58 special_objects32_base_id + lt .spriteid! bbox -1 movey immovable // hospital bed
+	// hospitalcurtain  <- trader .pos lt .pos! 1 movey immovable
+	stretcher <- trader .pos lt .pos!
+	0x 50 special_objects32_base_id + lt .spriteid! bbox -2 movey 0.15 0 1 rnd -2 * 1 + * movex immovable // shelf
+	stretcher <- trader .pos lt .pos!
+	0x 52 special_objects32_base_id + lt .spriteid! bbox immovable -1.5 movex -0.35 movey // iv drip
+;
+
+: trader-antique-stand dup .character@ args( trader chara )
+	1 <- chara .female!
+	11 <- chara .hattype!
+	WEAPON_TRENCHSHOV <- chara .weapona!
+	3 <- chara .strength!
+	3 <- chara .fitness!
+	1 <- chara .carrying.slot_count!
+	covered-boxes <- trader .pos lt .pos! immovable
+;
+
+: trader-throwables-stand dup .character@ args( trader chara )
+	0 <- chara .female!
+	FNFSC 10 + <- chara .specialtype!
+	0.5 <- chara .headoff.y!
+	// WEAPON_CROLLER <- chara .weapona!
+	// WEAPON_CROLLER <- chara .weapon_nodropa!
+	WEAPON_STIELWHACK <- chara .weapona!
+	WEAPON_STIELWHACK <- chara .weapon_nodropa!
+	3 <- chara .strength!
+	6 <- chara .fitness!
+	2 <- chara .vitality!
+	2 <- chara .health!
+	1 <- chara .carrying.slot_count!
+	
+	indcrate <- trader .pos lt .pos! immovable drift
+	bbqtank <- trader .pos lt .pos! immovable
+	0x 92 special_objects32_base_id + lt .spriteid!
+;
+
+: trader-hardware-stand dup .character@ args( trader chara )
+	0 <- chara .female!
+	FNFSC 7 + <- chara .specialbody!
+	0 <- chara .glassestype!
+	0 <- chara .hattype!
+	2 <- chara .headoff.y!
+	WEAPON_DRILL <- chara .weapona!
+	25 <- chara .stackeda!
+	1 <- chara .carrying.slot_count!
+	3 for
 		indcrate <- trader .pos lt .pos! immovable
 	next
-	0x 92 special_objects32_base_id + lt .spriteid! // Box of pipebombs!
+;
+
+
+// FNF TRADERS END
+
+: trader-rare-coldsteel-stand dup .character@ args( trader chara )
+	<- chara .lynnify
+	pictable <- trader .pos lt .pos! immovable drift
+;
+
+: trader-rare-skelknight-stand dup .character@ args( trader chara )
+	<- chara .skelknightify
+	6 for skel <- trader .pos lt .pos! immovable drift next
+	bombskull <- trader .pos lt .pos! .drift
 ;
 
 : trader-rare-witch-stand
@@ -852,14 +958,14 @@ random-sayings-base shuffles var random-sayings
 : trader-blunt-stand dup .character@ args( trader chara )
 	1 <- chara .female!
 	WEAPON_SLEDGE <- chara .weapona!
-	WEAPON_SLEDGE <- chara .weapon_nodropa!
+	1 <- chara .weapon_nodropa!
 	cinderblock <- trader .pos lt .pos! immovable
 ;
 
 : trader-polearm-stand dup .character@ args( trader chara )
 	0 <- chara .female!
 	WEAPON_MODSPEAR <- chara .weapona!
-	WEAPON_MODSPEAR <- chara .weapon_nodropa!
+	1 <- chara .weapon_nodropa!
 	cinderblock <- trader .pos lt .pos! immovable
 ;
 
@@ -883,28 +989,20 @@ random-sayings-base shuffles var random-sayings
 : trader-silent-stand dup .character@ args( trader chara )
 	19 <- chara .hattype!
 	WEAPON_SILENTRIFLE <- chara .weapona!
-	WEAPON_SILENTRIFLE <- chara .weapon_nodropa!
+	1 <- chara .weapon_nodropa!
 	indcrate <- trader .pos lt .pos! immovable drift
 ;
 
 : trader-handy-stand dup .character@ args( trader chara )
 	// 1 <- chara .female!
 	WEAPON_TACTICOP <- chara .weapona!
-	WEAPON_TACTICOP <- chara .weapon_nodropa!
-	// 26 <- chara .glassestype! - Gasmask, use for Spray Master instead
+	1 <- chara .weapon_nodropa!
+	26 <- chara .glassestype! // - Gasmask, use for Spray Master instead
 	2 for indcrate <- trader .pos lt .pos! immovable drift next
 ;
 
 
-: trader-drawpair-reset
-	0 to gas-bought
-	0 to bullet-bought
-	0 to shotgun-shell-bought
-	0 to rifle-shell-bought
-	0 to medical-bought
-	0 to allammo-bought
-	0 to allammo-dogpal
-	// weapons.df stuff
+: trader-weapon-drawpair-reset
 	0 to army-1
 	0 to army-2
 	0 to army-3
@@ -913,18 +1011,12 @@ random-sayings-base shuffles var random-sayings
 	0 to army-6
 	0 to army-7
 	0 to shotgun-1
-	0 to shotgun-1b
-	0 to shotgun-1c
 	0 to shotgun-2
-	0 to shotgun-2b
 	0 to shotgun-3
 	0 to shotgun-4
-	0 to shotgun-4b
 	0 to rifle-1
-	0 to rifle-1b
 	0 to rifle-2
 	0 to rifle-3
-	0 to rifle-3b
 	0 to rifle-4
 	0 to fanatic-1
 	0 to fanatic-2
@@ -948,7 +1040,6 @@ random-sayings-base shuffles var random-sayings
 	0 to firearms-shotgun
 	0 to firearms-cowboy
 	0 to firearms-revolver
-	0 to firearms-heavy
 	0 to pipebomb-8
 	0 to pipebomb-5
 	0 to pipebomb-2
@@ -964,43 +1055,106 @@ random-sayings-base shuffles var random-sayings
 	0 to silent-pistol
 	0 to silent-rifle
 	0 to silent-shotgun
-	0 to handy-flare
+	0 to silent-smg
 	0 to handy-flashlight
 	0 to handy-spray
 	0 to handy-tacticop
-	0 to pistol-6
+	
+	1 shotgun-4alt - to shotgun-4alt
+	1 shotgun-2alt - to shotgun-2alt
+	1 shotgun-1alt - to shotgun-1alt
+	0 to shotgun-5
+	0 to rifle-3b
+	1 rifle-3balt - to rifle-3balt
+	0 to firearms-launcher
+	0 to silent-smg
+	0 to handy-4
+	
 	0 to pistol-5
 	0 to pistol-4
 	0 to pistol-3
 	0 to pistol-2
+	1 pistol-2alt - to pistol-2alt
+	1 pistol-1alt - to pistol-1alt
 	0 to swat-1
 	0 to swat-2
 	0 to swat-3
 	0 to swat-4
 	0 to swat-5
 	0 to swat-6
-	0 to modmelee-4
-	0 to modmelee-3
-	0 to modmelee-2
-	0 to modmelee-1b
-	0 to modmelee-1
 	0 to modranged-1
 	0 to modranged-2
 	0 to modranged-3
 	0 to modranged-4
 	0 to modranged-5
-	0 to pyromerch-1
-	0 to pyromerch-1b
-	0 to pyromerch-2
-	0 to pyromerch-3
-	0 to pyromerch-4
+	0 to modmelee-1
+	0 to modmelee-1b
+	0 to modmelee-2
+	0 to modmelee-3
 	0 to pyromerch-5
+	0 to pyromerch-4
+	0 to pyromerch-3
+	0 to pyromerch-2
+	0 to pyromerch-1b
+	0 to pyromerch-1
 	0 to demomerch-1
 	0 to demomerch-2
 	0 to demomerch-3
 	0 to demomerch-4
 	0 to demomerch-5
+	
+	0 to hardware-1
+	0 to hardware-2
+	0 to hardware-3
+	0 to hardware-4
+	0 to throwables-7
+	0 to throwables-6
+	0 to throwables-5
+	0 to throwables-4
+	0 to throwables-3
+	0 to throwables-2
+	0 to antique-1
+	0 to antique-2
+	1 antique-2alt - to antique-2alt
+	0 to antique-3
+	0 to antique-4
+	0 to antique-5
+	0 to antique-6
+	0 to knives-0
+	0 to knives-1
+	0 to knives-2
+	0 to knives-3
+	0 to knives-4
+	0 to knives-5
+	0 to smg-1
+	0 to smg-2
+	0 to smg-3
+	0 to smg-4
+	1 smg-4alt - to smg-4alt
+	0 to smg-5
+	0 to hardware-1
+	0 to hardware-2
+	0 to hardware-3
+	0 to hardware-4
+	0 to sports-1
+	0 to sports-2
+	0 to sports-3
+	0 to sports-4
+	0 to sports-5
+	
+	
 ;
+
+: trader-util-drawpair-reset
+	0 to gas-bought
+	0 to bullet-bought
+	0 to shotgun-shell-bought
+	0 to rifle-shell-bought
+	0 to medical-bought
+	0 to allammo-bought
+	0 to allammo-dogpal
+;
+
 
 // Deck containing ordered pairs for CYOA word and SETUP word
 // NOTE: DO NOT SHUFFLE IT! 
@@ -1016,7 +1170,6 @@ deck-new
 	card-pair: trade-rare-sleep			trader-rare-sleep-stand
 	card-pair: trade-rare-chicken		trader-rare-chicken-stand
 	card-pair: trade-rare-nerd			trader-rare-nerd-stand
-	card-pair: trade-rare-raes		trader-rare-raes-stand
 constant TRADER-LIST-RARE
 TRADER-LIST-RARE var trader-list-rare
 
@@ -1035,6 +1188,28 @@ deck-new
 	card-pair: trade-army           trader-army-stand
 	card-pair: trade-pipebomb       trader-pipebomb-stand
 	card-pair: trade-anime          trader-anime-stand
+	card-pair: trade-blunt          trader-blunt-stand
+	card-pair: trade-polearm        trader-polearm-stand
+	card-pair: trade-handy			trader-handy-stand
+	card-pair: trade-silent			trader-silent-stand
+	
+	card-pair: trade-pistol			trader-pistol-stand
+	card-pair: trade-swat			trader-swat-stand
+	card-pair: trade-modmelee		trader-modmelee-stand
+	card-pair: trade-modranged		trader-modranged-stand
+	card-pair: trade-pyromain		trader-pyro-stand
+	card-pair: trade-demolition		trader-demolition-stand
+	
+	card-pair: trade-smg			trader-smg-stand
+	card-pair: trade-knives			trader-knives-stand
+	card-pair: trade-sports			trader-sports-stand
+	card-pair: trade-antique		trader-antique-stand
+	card-pair: trade-hardware		trader-hardware-stand
+	card-pair: trade-throwables		trader-throwables-stand
+constant TRADER-LIST-WEAPON
+TRADER-LIST-WEAPON var trader-list-weapon
+
+deck-new	
 	card-pair: trade-mechanic       trader-mechanic-stand
 	card-pair: trade-fitness        trader-fitness-stand
 	card-pair: trade-shoot          trader-shoot-stand
@@ -1047,37 +1222,62 @@ deck-new
 	card-pair: trade-gas            trader-gas-stand 
 	card-pair: trade-medicalt       trader-medicalt-stand
 	card-pair: trade-allammo        trader-allammo-stand
-	card-pair: trade-blunt          trader-blunt-stand
-	card-pair: trade-polearm        trader-polearm-stand
-	card-pair: trade-handy			trader-handy-stand
-	card-pair: trade-silent			trader-silent-stand
+constant TRADER-LIST-UTIL
+TRADER-LIST-UTIL var trader-list-util
+
+// 11 weapon traders, 12 utility traders
+// 12 FNF traders
+
+deck-new
+	card-pair: trade-rare-doc		trader-rare-doc-stand
+	card-pair: trade-rare-doc		trader-rare-doc-stand
+	card-pair: trade-rare-doc		trader-rare-doc-stand
+constant TRADER-LIST-TEST
+// Easy trader testing by uncommenting below line
+// TRADER-LIST-TEST var trader-list
+
+deck-new
 	card-pair: trade-pistol			trader-pistol-stand
 	card-pair: trade-swat			trader-swat-stand
 	card-pair: trade-modmelee		trader-modmelee-stand
 	card-pair: trade-modranged		trader-modranged-stand
 	card-pair: trade-pyromain		trader-pyro-stand
 	card-pair: trade-demolition		trader-demolition-stand
-constant TRADER-LIST
-TRADER-LIST var trader-list
+	
+	card-pair: trade-smg			trader-smg-stand
+	card-pair: trade-knives			trader-knives-stand
+	card-pair: trade-sports			trader-sports-stand
+	card-pair: trade-antique		trader-antique-stand
+	card-pair: trade-hardware		trader-hardware-stand
+	card-pair: trade-throwables		trader-throwables-stand
+constant TRADER-LIST-FNF
+// TRADER-LIST-FNF var trader-list-weapon
 
-deck-new
-	card-pair: trade-handy			trader-handy-stand
-	card-pair: trade-handy			trader-handy-stand
-constant TRADER-LIST-TEST
-// Easy trader testing by uncommenting below line
-// TRADER-LIST-TEST var trader-list
-
-: trader-drawpair trader-list depths 2 < if 
-		TRADER-LIST to trader-list 8 250 debug-tone 
+: trader-weapon-drawpair trader-list-weapon depths 2 < if 
+		TRADER-LIST-WEAPON to trader-list-weapon 8 250 debug-tone 
 		// Add -TEST to above for easier testing
-		trader-drawpair-reset
+		trader-weapon-drawpair-reset
 	then drawpair 
 ;
 
-// 23 normal traders, then 8 rare traders
-// Currently the normal traders are inflated to make rare traders rarer, will tweak this down as more rare traders are added. 35 right now.
+: trader-util-drawpair trader-list-util depths 2 < if 
+		TRADER-LIST-UTIL to trader-list-util 8 250 debug-tone 
+		// Add -TEST to above for easier testing
+		trader-util-drawpair-reset
+	then drawpair 
+;
+
+20 value TRADER-NORMAL-WEAPON-CHANCE
+10 value TRADER-NORMAL-UTIL-CHANCE
+
+: trader-normal-weapon-number TRADER-NORMAL-WEAPON-CHANCE gstats{ ugnome-raretrader } 2 * - ;
+: trader-normal-util-number TRADER-NORMAL-UTIL-CHANCE gstats{ ugnome-raretrader } - ;
+
+// 25 normal traders, then 10 rare traders
+// Currently the normal traders are inflated to make rare traders rarer, will tweak this down as more rare traders are added. Was 35 for a long time, now experimenting with less.
 deck-new
-	35 cards: trader-drawpair
+	trader-normal-weapon-number cards: trader-weapon-drawpair
+	trader-normal-util-number cards: trader-util-drawpair
 	card: trader-drawpair-rare
 constant TRADER-DRAW-PICK
 TRADER-DRAW-PICK shuffles var trader-draw-pick
@@ -1123,12 +1323,34 @@ TRADER-DRAW-PICK shuffles var trader-draw-pick
 	lt <- trader .follow
 ;
 
+: traderrareonly
+	xyp.x 0= if tanchorx to xyp.x then
+	xyp.y 0= if tanchory to xyp.y then
+
+	lt trader-drawpair-rare args( trader setup cyoa )
+
+	<- cyoa 0= if <- trader silentkillit then; 
+	<- setup 0= if <- trader silentkillit then;
+
+	<- cyoa <- trader .cyoa!
+
+	<- trader <- setup execute
+
+	lt thing# <- trader thing# = if then;
+	lt <- trader .follow
+	
+	
+;
+
 : traderinside new-trader-inside tradercommon ;
 
 : traderhere new-trader tradercommon ;
 
-// Campfires currently in: final, 2, 3, 4, 5
-// Gas buyer is currently in: final, 4, 5, 9
+: traderinside-rare new-trader-inside traderrareonly ;
+: traderhere-rare new-trader traderrareonly ;
+
+// Campfires currently in: final, 2, 3, 4, 5, 14
+// Gas buyer is currently in: final, 4, 5, 9, 14, 15 
 : trader-food-for-gas
 	new-trader lt args( trader )
 
@@ -1150,7 +1372,7 @@ TRADER-DRAW-PICK shuffles var trader-draw-pick
 
 ;
 
-// Weapon buyer currently in: final, 7, 9, 10 ... was briefly in 2 but I took it out
+// Weapon buyer currently in: final, 7, 9, 10, 14, 13 ... was briefly in 2 but I took it out
 : trader-weapon-buyer-common
 	lt args( trader )
 

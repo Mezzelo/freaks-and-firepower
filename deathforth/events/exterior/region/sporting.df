@@ -17,20 +17,22 @@ location
 			2 of frying .scatter hatchet .scatter endof
 			3 of machete2 .scatter endof
 			4 of 80 %chance if rifle else hunting then .scatter 15 srifle endof
-			5 of shotgun .scatter 8 sshot endof 
+			5 of shotrandna .scatter 8 sshot endof 
 		endcase
 		machete1 .scatter
 		fishing .scatter
 		70 %chance if machete1 .scatter then
 		5 %chance if blowtorch scatter then
 		20 %chance if 20 50 rnd sgas then
+		5 %chance if bow scatter then
+		30 %chance if 2 3 rnd roadflare .scatter then
 	;
 	: airhornloot
 		30 %chance if 50 else 30 then airhorn .item.charges! lt .scatter
 	;
 	: jockweapons
 		for 
-		1 7 rnd case
+		1 8 rnd case
 			1 of baseball .scatter endof
 			2 of cricket .scatter endof
 			3 of golf .scatter endof
@@ -38,6 +40,7 @@ location
 			5 of 90 %chance if hockey else xtreme then .scatter endof 
 			6 of tennis .scatter endof
 			7 of paddle .scatter endof
+			8 of football .scatter endof
 		endcase
 		next
 	;

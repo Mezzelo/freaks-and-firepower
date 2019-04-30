@@ -101,7 +101,7 @@ cyoa: rare1-museum
 		2 of "MEDIEVAL AXES AND ARMS" endof
 		3 of "SNACK FOODS OF THE KNOWN WORLD" endof
 		4 of "YE OLDE GUNS OF YE OLDE WARS" endof
-		5 of "HOT THINGS WITH HOT FIRES" endof
+		5 of "HOT THINGS WITH HOTTER FIRES" endof
 		6 of "THINGS THAT GO BOOM" endof
 	endcase rbold +text " exhibit." +text
 	2 8 18 rnd 1 2 rnd zforecast
@@ -135,15 +135,15 @@ cyoa: rare1-altar
 		gas-draw
 ;
 
-// Wienermobile
+// Giant Pig Car
 
 cyoa: rare1-hotdog
-	"Giant Hot Dog" cyoa-title!
+	"Giant Animal" cyoa-title!
 	
-	($ Thegroup .. " sees a gigantic hot dog sitting on the side of the road, in the middle of a bunch of stores. Maybe it is a hallucination? Or some sort of trap?" $) cyoa-text! basic-tone
+	($ Thegroup .. " sees a gigantic animal on the side of the road, in the middle of a bunch of stores. Maybe it is a hallucination? Or some sort of trap?" $) cyoa-text! basic-tone
 	2.3 8 18 rnd 0 1 rnd zforecast
 	"events/rareloc/region/hotdog.df" $load-region
-		choice( "Investigate Hot Dog" )choice: premission
+		choice( "Investigate Animal" )choice: premission
 		gas-draw
 ;
 

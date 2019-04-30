@@ -1,6 +1,5 @@
 "load boot.df" to eval-buf
 
-
 : empty depth remove ;
 
 : sc player .charid@ #character .specialtype! ;
@@ -43,6 +42,24 @@
 // Weapon and bullet spawning
 
 // Deprecated alt words for weapons
+"asdf" print
+: driftbait
+1 12 rnd case
+	1 of femur endof
+	2 of shvbone endof
+	3 of wood endof
+	4 of nailwood endof
+	5 of femur endof
+	6 of wood endof
+	7 of scissors endof
+	8 of stabwood endof
+	9 of metal endof
+	10 of screwdriver endof
+	11 of skelarm endof
+	12 of wrench endof
+endcase
+;
+"adsf" print
 
 : huntcowboy 
 90 %chance if 
@@ -60,30 +77,49 @@
 		then
 	then
 else 
-	hunting 
+	10 %chance if 
+		65 %chance if 
+			silentrifle
+		else 
+			awp
+		then
+	else 
+		80 %chance if 
+			hunting
+		else 
+			juanmini
+		then
+	then
+then ;
+
+: huntmini
+70 %chance if 
+	80 %chance if 
+		hunting
+	else 
+		juanmini
+	then
+else 
+	85 %chance if 
+		silentrifle
+	else 
+		awp
+	then
 then ;
 
 : shotrand
 	65 %chance if 
 		shotgun 8 sshot 
 	else 
-		60 %chance if 
-			levshotty 12 sshot 
-		else 
-			dbshotty 16 sshot 
-		then
+		levshotty 10 sshot
 	then
 ;
 
 : shotrandna
 	65 %chance if 
 		shotgun
-	else 
-		60 %chance if 
-			levshotty
-		else 
-			dbshotty
-		then
+	else
+		levshotty
 	then
 ;
 
@@ -92,10 +128,14 @@ then ;
 	85 %chance if 
 		dolt 12 sbullet 
 	else 
-		60 %chance if 
+		70 %chance if 
 			beagle 15 sbullet 
 		else 
-			milipistol 25 sbullet 
+			70 %chance if 
+				snubnose 20 sbullet
+			else 
+				milipistol 25 sbullet
+			then
 		then
 	then
 ;
@@ -104,10 +144,18 @@ then ;
 	85 %chance if 
 		dolt
 	else 
-		60 %chance if 
-			beagle
+		70 %chance if 
+			85 %chance if 
+				beagle
+			else 
+				juanmini
+			then
 		else 
-			milipistol
+			70 %chance if 
+				snubnose
+			else 
+				milipistol
+			then
 		then
 	then
 ;
@@ -116,13 +164,17 @@ then ;
 	75 %chance if 
 		uzi 40 sbullet 
 	else 
-		75 %chance if 
+		55 %chance if 
 			hsmg 30 sbullet
 		else 
-			50 %chance if 
-				vsmg 55 rnd sbullet 
+			15 %chance if 
+				35 %chance if 
+					vsmg 55 sbullet 
+				else
+					psmg 55 sbullet 
+				then 
 			else
-				tec 55 rnd sbullet 
+				tec 55 sbullet 
 			then 
 		then
 	then 
@@ -132,11 +184,15 @@ then ;
 	75 %chance if 
 		uzi
 	else 
-		75 %chance if 
+		55 %chance if 
 			hsmg
 		else 
-			50 %chance if 
-				vsmg
+			35 %chance if 
+				25 %chance if 
+					vsmg
+				else
+					psmg
+				then 
 			else
 				tec
 			then 
@@ -177,10 +233,10 @@ then ;
 ;
 
 : arrand
-	65 %chance if 
+	75 %chance if 
 		ak47 30 srifle 
 	else 
-		85 %chance if 
+		75 %chance if 
 			pcarbine 30 srifle 
 		else 
 			m4 45 srifle 
@@ -189,10 +245,10 @@ then ;
 ;
 
 : arrandna
-	65 %chance if 
+	75 %chance if 
 		ak47
 	else 
-		65 %chance if 
+		75 %chance if 
 			pcarbine
 		else 
 			m4
@@ -201,34 +257,65 @@ then ;
 ;
 
 : asrand
-	90 %chance if 
-		autoshot 20 sshot 
+	95 %chance if 
+		75 %chance if 
+			autoshot 20 sshot 
+		else 
+			pdshotty 20 sshot 
+		then 
 	else 
 		aashotty 40 sshot 
 	then 
 ;
 
 : asrandna
-	90 %chance if 
-		autoshot
+	95 %chance if 
+		75 %chance if 
+			autoshot
+		else 
+			pdshotty
+		then 
 	else 
 		aashotty
 	then 
 ;
 
 : superrand
-	55 %chance if 
-		minigun
-	else 
-		m60
+	80 %chance if
+		65 %chance if 
+			minigun
+		else 
+			40 %chance if 
+				m60
+			else 
+				vlmg
+			then
+		then
+	else
+		65 %chance if
+			supertec
+		else
+			aashotty
+		then
 	then
 ;
-
 : mopbroom 50 %chance if mop else broom then ;
 
 : baseball 90 %chance if baseball else spikedbat then ;
 : aluminum 90 %chance if aluminum else megaspikedbat then ;
 : nightstick 80 %chance if nightstick else tacticop then ;
+// FNF TODO
+: pistol 80 %chance if 
+	pistol 
+else 
+	snubnose 
+then ;
+
+: shotgun 90 %chance if 
+	shotgun 
+else 
+	dshotgun 
+then ;
 
 : nicer-meleeweapons 1 6 rnd case 
 	1 of 10 %chance if firepoker else otaku then endof
@@ -241,15 +328,57 @@ then ;
 ;
 
 : meleeweapons 1 11 rnd case 
-	1 of 95 %chance if nail else cardboard then endof 
-	2 of 30 %chance if cleaver else kitch then endof
+	1 of 75 %chance if nail else cardboard then endof
+	2 of 
+		30 %chance if 
+			cleaver 
+		else 
+			20 %chance if 
+				80 %chance if 
+					60 %chance if 
+						swblade
+					else 
+						boxcutter
+					then 
+				else 
+					butterfly
+				then 
+			else 
+				kitch 
+			then 
+		then 
+	endof
 	3 of 25 %chance if cricket else baseball then endof 
 	4 of 30 %chance if crowbar else wrench then endof 
 	5 of 50 %chance if cane else umbrella then endof 
 	6 of 90 %chance if hatchet else fire then endof
 	7 of 50 %chance if purse else knitting then endof
-	8 of 70 %chance if clawhammer else ballpeen then endof
-	9 of 50 %chance if mallet else screwdriver then endof
+	8 of 
+		15 %chance if 
+			nailgun drift driftbait
+		else 
+			70 %chance if 
+				80 %chance if 
+					clawhammer 
+				else 
+					boxcutter
+				then 
+			else 
+				ballpeen 
+			then 
+		then 
+	endof
+	9 of 
+		50 %chance if 
+			mallet
+		else 
+			15 %chance if 
+				drill drift driftbait
+			else 
+				screwdriver
+			then 
+		then 
+	endof  
 	10 of 60 %chance if tennis else hockey then endof
 	11 of 70 %chance if scissors else golf then endof
 	endcase 
@@ -263,13 +392,13 @@ else
 	else 
 		hevrand
 	then 
-then .scatter ;
+then .scatter ;	   			   
 
 : commonranged
 1 2 rnd case
 1 of 
 95 %chance if 
-	95 %chance if 
+	90 %chance if 
 		10 30 rnd sbullet pistol 
 	else 
 		hevrand
@@ -279,21 +408,25 @@ else
 		75 %chance if 
 			uzi 20 40 rnd sbullet 
 		else
-			75 %chance if 
+			55 %chance if 
 				hsmg 10 30 rnd sbullet 
 			else
-				50 %chance if 
-					vsmg 40 60 rnd sbullet 
+				35 %chance if 
+					25 %chance if 
+						vsmg 40 60 rnd sbullet 
+					else
+						psmg 40 60 rnd sbullet 
+					then 
 				else
 					tec 40 60 rnd sbullet 
 				then 
 			then 
 		then 
 	else 
-		70 %chance if 
+		75 %chance if 
 			ak47 20 40 srifle 
 		else 
-			66 %chance if 
+			75 %chance if 
 				pcarbine 25 35 srifle 
 			else 
 				m4 35 45 srifle 
@@ -309,11 +442,7 @@ endof
 		65 %chance if 
 			shotgun 8 16 rnd sshot 
 		else 
-			60 %chance if
-				levshotty 12 20 rnd sshot 
-			else 
-				dbshotty 16 25 rnd sshot 
-			then
+			levshotty 12 20 rnd sshot
 		then
 	then
 endof
@@ -322,19 +451,27 @@ endcase ;
 : niceranged
 1 2 rnd case
 1 of 
-	90 %chance if 
+	95 %chance if 
 		commonranged 
 	else 
 		65 %chance if 
-			flaregun
-		else 
-			75 %chance if 
-				panzerpoot
+			5 %chance if 
+				4 8 rnd sshot flameshot
 			else 
-				10 %chance if 
-					quadlauncher
+				75 %chance if 
+					flaregun drift driftbait
 				else 
-					doublelauncher
+					nailgun drift driftbait
+				then
+			then
+		else 
+			65 %chance if 
+				panzerpoot drift driftbait
+			else 
+				30 %chance if 
+					quadlauncher drift driftbait
+				else 
+					doublelauncher drift driftbait
 				then 
 			then 
 		then 
@@ -342,10 +479,10 @@ endcase ;
 endof
 2 of 
 	20 %chance if 
-		70 %chance if 
+		75 %chance if 
 			ak47 20 40 srifle 
 		else 
-			66 %chance if 
+			75 %chance if 
 				pcarbine 25 35 srifle 
 			else 
 				m4 35 45 srifle 
@@ -356,11 +493,15 @@ endof
 			75 %chance if 
 				uzi 20 40 rnd sbullet 
 			else
-				75 %chance if 
+				55 %chance if 
 					hsmg 10 30 rnd sbullet 
 				else
-					50 %chance if 
-						vsmg 40 60 rnd sbullet 
+					35 %chance if 
+						25 %chance if 
+							vsmg 40 60 rnd sbullet 
+						else
+							psmg 40 60 rnd sbullet 
+						then
 					else
 						tec 40 60 rnd sbullet 
 					then
@@ -369,12 +510,11 @@ endof
 		else 
 			65 %chance if 
 				shotgun 8 16 rnd sshot 
-			else 
-				60 %chance if
-					levshotty 12 20 rnd sshot 
-				else 
-					dbshotty 16 25 rnd sshot 
-				then
+			else
+			
+				levshotty 12 20 rnd sshot
+					
+					
 			then
 		then 
 	then 
@@ -384,33 +524,57 @@ endcase ;
 : exoticweapons 
 80 %chance if 
 	75 %chance if 
-		20 50 rnd sgas chainsaw 
+		20 50 rnd sgas
+		20 %chance if 
+			superleaf
+		else 
+			chainsaw
+		then
 	else 
 		35 %chance if 
-			flaregun
-		else 
-			45 %chance if 
-				panzerpoot
+			20 %chance if 
+				4 8 rnd sshot flameshot
 			else 
-				20 %chance if 
-					quadlauncher
+				supernail drift driftbait
+			then
+		else 
+			35 %chance if 
+				panzerpoot drift driftbait
+			else 
+				25 %chance if 
+					quadlauncher drift driftbait
 				else 
-					doublelauncher
+					doublelauncher drift driftbait
 				then 
 			then 
 		then 
 	then 
 else 
-	woodclub 
+	20 %chance if 
+		nailgun drift driftbait
+	else 
+		drill drift driftbait
+	then 
 then ;
-
 : niceweapons 30 %chance if meleeweapons else 30 %chance if commonranged else 90 %chance if niceranged else exoticweapons then then then ;
 
 : kitchenweapons 
 	50 %chance if spatula .scatter then 10 %chance if frying .scatter then
 	5 %chance if icepick .scatter then
 	70 %chance if 
-		kitch 
+		20 %chance if 
+			80 %chance if 
+				60 %chance if 
+					swblade
+				else 
+					boxcutter
+				then 
+			else 
+				butterfly
+			then 
+		else 
+			kitch 
+		then
 	else 
 		cleaver 
 	then
@@ -488,28 +652,120 @@ then ;
 : pipescat pipebomb .scatter ;
 : grenscat grenade .scatter ;
 : molscat molotov .scatter ;
+: flashscat flashbang .scatter ;
+: gasnscat gasnade .scatter ;
+: incendscat incendnade .scatter ;
+: rflarescat roadflare .scatter ;		
+: stielscat stielnade .scatter ;			 
+
+: %zpskullchance %chance if zp-skull scatter then ;
+: zpskullchance 2 %zpskullchance ;
+: zpskullchance-high 20 %zpskullchance ;
+: zpskullchance-ultra 60 %zpskullchance ;
 
 : LLweird 
 	50 %chance if 
 		5 for skeldog scatter next 
 	else
 		skelscat 6 for bottle .scatter next
-	then
+	then zpskullchance-ultra
 ;
 
 : LLthrow 
 	50 %chance if
-		molscat 50 %chance if molscat then 20 %chance if molscat then
+		20 %chance if
+			incendscat
+			40 %chance if incendscat then
+		else
+			30 %chance if
+				rflarescat
+				70 %chance if rflarescat then 
+				15 %chance if rflarescat then
+			else
+				molscat 
+				50 %chance if molscat then 
+				20 %chance if molscat then
+			then
+		then
 	else
 		70 %chance if
-			pipescat 50 %chance if pipescat then 20 %chance if pipescat then
+			70 %chance if
+				pipescat 
+				50 %chance if pipescat then 
+				20 %chance if pipescat then
+			else
+				flashscat 
+				50 %chance if flashscat then 
+				35 %chance if flashscat then
+				35 %chance if flashscat then
+			then
 		else
-			grenscat 40 %chance if grenscat then
+			70 %chance if
+				70 %chance if
+					grenscat 
+					40 %chance if grenscat then
+				else
+					stielscat
+					50 %chance if stielscat then
+					30 %chance if stielscat then
+				then
+			else
+				gasnscat
+				70 %chance if gasnscat then
+				40 %chance if gasnscat then
+			then
 		then
 	then
-	skelscat
- ;
+	skelscat zpskullchance-high
+;
 
+: LLthrownoskel
+	50 %chance if
+		20 %chance if
+			incendscat
+			40 %chance if incendscat then
+		else
+			30 %chance if
+				rflarescat
+				70 %chance if rflarescat then 
+				15 %chance if rflarescat then
+			else
+				molscat 
+				50 %chance if molscat then 
+				20 %chance if molscat then
+			then
+		then
+	else
+		70 %chance if
+			70 %chance if
+				pipescat 
+				50 %chance if pipescat then 
+				20 %chance if pipescat then
+			else
+				flashscat 
+				50 %chance if flashscat then 
+				35 %chance if flashscat then
+				35 %chance if flashscat then
+			then
+		else
+			70 %chance if
+				70 %chance if
+					grenscat 
+					40 %chance if grenscat then
+				else
+					stielscat
+					50 %chance if stielscat then
+					30 %chance if stielscat then
+				then
+			else
+				gasnscat
+				70 %chance if gasnscat then
+				40 %chance if gasnscat then
+			then
+		then
+	then
+;
+ 
 : LLgasmed 10 %chance if 1 LOOT_FOOD spawnscat else 30 %chance if 20 40 rnd LOOT_GAS spawnscat else 1 LOOT_MEDICAL spawnscat then then ;
  
 : LLmiscdrop 10 %chance if 20 40 rnd LOOT_GAS spawnscat else 60 %chance if 1 LOOT_FOOD spawnscat else 1 LOOT_MEDICAL spawnscat then then ;
@@ -519,7 +775,7 @@ then ;
 20 %chance if LLweapon then 
 ;
 
-: LLkitchen 1 LOOT_FOOD spawnscat 2 for 20 %chance if skelscat 1 LOOT_FOOD spawnscat then next ;
+: LLkitchen 1 LOOT_FOOD spawnscat 2 for 20 %chance if skelscat 1 LOOT_FOOD spawnscat then next zpskullchance ;
 
 : LLammobox 50 %chance if 11 21 rnd LOOT_BULLET spawnscat else 50 %chance if 8 18 rnd LOOT_RIFLE_SHELL spawnscat else 5 12 rnd LOOT_SHOTGUN_SHELL spawnscat then then ;
 : LLammomulti skelscat 2 for LLammobox next 30 %chance if LLammobox then ;
@@ -527,7 +783,7 @@ then ;
 : LLammo 80 %chance if LLammobox else 90 %chance if LLammomulti else LLammoheaps then then 
  LLweapon
 ;
-: looseloot 1 %chance if LLweird else 5 %chance if LLthrow else 50 %chance if LLmisc else LLammo then then then ;
+: looseloot 1 %chance if LLweird else 5 %chance if LLthrow else 50 %chance if LLmisc else LLammo then then then zpskullchance ;
 : looselootgasmed 1 %chance if LLweird else 5 %chance if LLthrow else 50 %chance if LLgasmed else LLammo then then then ;
 	
 roomgen{
@@ -541,7 +797,7 @@ roomgen{
 : bathrndloot 1 LOOT_MEDICAL loot! amount! ;
 : bathlootf 50 %chance if cupboard bathrndloot else drawers bathrndloot then ;
 : bathloote 50 %chance if ecupboard else edrawers then ;
-: bathloot 50 %chance if bathlootf else bathloote then bathhealspray ;
+: bathloot 50 %chance if bathlootf else bathloote then bathhealspray zpskullchance ;
 
 // Advanced Toilet Stuff
 
@@ -580,7 +836,6 @@ roomgen{
 ;
 
 : toiletloot
-	
 	// gstats{ ugnome-toilet 3 > if 1 zombop+! then }
 				
 	gstats{ ugnome-toilet } 2 > if		
@@ -617,7 +872,7 @@ roomgen{
 
 : bathset
 	only-chosen; bathtoilet
-	sink -1 1 rnd movex
+	sink rndsign 1 * movex
 ;
 
 : nbathset
@@ -633,15 +888,14 @@ roomgen{
 	only-chosen;
 	sink -10 movey
 	flippy
-	bathtoilet drift -10 movey 10 * movex
-	50 %chance if bathloot else bathtub then drift -10 movey 10 * movex
+	bathtoilet drift -10 movey 5 * movex
+	50 %chance if bathloot else bathtub then drift -10 movey 5 * movex
 ;
 
 : nbathsettiny
 	only-chosen;
 	sink -10 movey
-	flippy
-	bathtoilet drift -10 movey 10 * movex
+	bathtoilet drift -10 movey rndsign 5 * movex
 ;
 
 : rndshelf
@@ -673,7 +927,7 @@ rndshelf
 : closetloot 50 %chance if LLammobox else LLmiscdrop then ;
 : closetset 0 1 rnd zombs 50 %chance if closetloot else mopbroom .drift then ;
 
-: ammodumploot 30 %chance if 30 50 rnd LOOT_BULLET else 50 %chance if 23 40 rnd LOOT_RIFLE_SHELL else 19 30 rnd LOOT_SHOTGUN_SHELL then then loot! amount! ;
+: ammodumploot 30 %chance if 30 50 rnd LOOT_BULLET else 50 %chance if 23 40 rnd LOOT_RIFLE_SHELL else 19 30 rnd LOOT_SHOTGUN_SHELL then then loot! amount! zpskullchance ;
 : rndloot
 	1 4 rnd case
 	1 of rndhshelf endof
@@ -700,7 +954,7 @@ rndshelf
 : DRboxscat box scatter 2 for 60 %chance if box scatter LLmiscdrop then next ;
 : DRboxes 50 %chance if DRboxscat else DRammodump then ;
 : DRtriloot rndloot rndloot -1 movex rndloot 1 movex looseloot ;
-: DRloot 0 2 rnd zombs 30 %chance if niceweapons .drift else 40 %chance if DRtriloot else 90 %chance if DRboxes else exoticweapons .drift then then then ;
+: DRloot 0 2 rnd zombs 30 %chance if niceweapons .drift else 40 %chance if DRtriloot else 90 %chance if DRboxes else exoticweapons .drift then then then zpskullchance-high ;
 
 : DRzomb 50 %chance if 10 %zombs exit then 20 %chance if 20 %zombs exit then 20 %chance if 30 %zombs exit then 20 %chance if 50 %zombs exit then 5 %chance if 100 %zombs exit then empty ;
 : deathroom only-chosen; 2 4 rnd zombs DRzomb 50 %chance if DRloot then DRdeco ;
@@ -711,7 +965,7 @@ rndshelf
 : biglootbox box 50 %chance if 1 3 rnd LOOT_FOOD loot! amount! else ammodumploot then scatter ; 
 : biglootroll biglootbox 10 %chance if biglootbox then 
 10 %chance if niceweapons .drift then 20 %chance if cheapweapons .drift then 20 %chance if DRzomb then ;
-: bigloot LLmiscdrop LLammobox looseloot biglootroll biglootdeco biglootdead ;
+: bigloot LLmiscdrop LLammobox looseloot biglootroll biglootdeco biglootdead zpskullchance-high ;
 
 
 // LIVINGROOM STUFF
@@ -791,7 +1045,7 @@ rndshelf
 : KLbonus kitchenweapons .drift box scatter ;
 : KLtonskele 4 for 50 %chance if skel scatter then next 2 for 20 %chance if skeldog scatter then next ;
 : KLroll 0 3 rnd zombs 30 %chance if KLbonus else 40 %chance if KLdouble else 50 %chance if KLzomb else KLtonskele then then then 1 %chance if blowtorch drift then ;
-: KLchance 50 %chance if KLroll then 50 %chance if LLkitchen then ;
+: KLchance 20 %chance if trashcan scatter then 50 %chance if KLroll then 50 %chance if LLkitchen then ;
 
 : kstove stove 40 %chance if stoveloot else opened then ;
 : kfridge 60 %chance if fridge krndloot else efridge then ;
@@ -918,7 +1172,7 @@ map{ roomgen{
 	: diploma special_objects32_base_id 0x 42 + tanchor 1- wallhang ;
 	: phonestand
 		spawn special_objects32_base_id 0x 49 + lt .spriteid!
-		25 health! bbox immovable as-metal 
+		25 health! bbox swolebolt as-metal 
 	;
 	: policebench
 		spawn special_objects32_base_id 0x 4a + lt .spriteid!
@@ -950,18 +1204,42 @@ map{ roomgen{
 	: .zombspawn nearest .tpos anchor! zombs ;
 	
 	: tradecamploot 
-	1 11 rnd case
-		1 of pipebomb .drift endof
+	1 12 rnd case
+							
 		1 of 1 3 rnd for 1 LOOT_FOOD spawnloot scatter next endof
 		2 of 1 2 rnd for 1 LOOT_MEDICAL spawnloot scatter next endof
-		3 of grenade .drift endof
+		3 of 
+			65 %chance if
+				grenade .drift 
+			else
+				stielnade .drift
+			then
+		endof
 		4 of 1 2 rnd for 5 10 rnd sbullet next endof
 		5 of 1 2 rnd for 4 8 rnd srifle next endof
 		6 of 1 2 rnd for 3 6 rnd sshot next endof
 		7 of 20 30 rnd sgas endof
 		8 of regiondef{ getout-npc } endof
 		9 of commonranged .drift endof
+		10 of
+			70 %chance if
+				20 %chance if
+					gasnade .drift 
+				else
+					pipebomb .drift
+				then
+			else
+				flashbang .drift
+			then
+		endof
 		11 of meleeweapons .drift endof
+		12 of
+			70 %chance if
+				molotov .drift 
+			else
+				roadflare .drift
+			then
+  endof
 	endcase	
 ;
 	

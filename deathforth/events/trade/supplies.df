@@ -45,7 +45,7 @@ cyoa: trade-gas-food
 		($ "Do you have any spare gas? I'm running out!
 		" pbold .. "He offers to give you 2 cans of food for every 25 units of gas." $)
 		+crtext gasamt
-		choice( "No thanks" )choice
+		choice( "No thanks" )choice back-esc
 		most-ahole if
 			charchoice( " robs him" )choice: trade-gas-food-rob
 		then
@@ -106,7 +106,7 @@ cyoa: trade-gas
 	gas-bought 15 < if
 		"He offers to sell 10 units of gas in exchange for every food item he gets." +crtext 
 		foodamt
-		choice( "No thanks" )choice
+		choice( "No thanks" )choice back-esc
 		most-ahole if
 			charchoice( " robs the trader" )choice: trade-gas-rob
 		then
@@ -166,7 +166,7 @@ cyoa: trade-bullet
 	($ Thegroup .. " talks to a friendly scavenger who is selling extra bullets. She claims to not use pistols due to how gunshots rile up zombies." $) text!
 	bullet-bought 15 < if 
 		"She offers 8 bullets for every food item she gets." +crtext foodamt
-		choice( "No thanks" )choice
+		choice( "No thanks" )choice back-esc
 		most-ahole if
 			charchoice( " robs the trader" )choice: trade-bullet-rob
 		then		
@@ -224,7 +224,7 @@ cyoa: trade-shotgun-shell
 	($ Thegroup .. " sees a gruff man near an ice cream truck. The words " .. "ICE CREAM" pbold .. " have been crossed off its sign with " .. "SHOTGUN SHELLS" rbold .. " written in." $) cyoa-text!
 	shotgun-shell-bought 15 < if
 		"He offers to sell 5 shotgun shells for every food item you give him." +crtext foodamt
-		choice( "No thanks" )choice
+		choice( "No thanks" )choice back-esc
 		most-ahole if
 			charchoice( " robs the trader" )choice: trade-shotgun-shell-rob
 		then
@@ -281,7 +281,7 @@ cyoa: trade-rifle-shell
 	($ Thegroup .. " runs into someone selling extra rifle ammo. She says she's frugal with ammo, often killing multiple zombies in one shot." $) text!
 	rifle-shell-bought 15 < if
 		"She offers to give 6 rifle ammo per food item she gets." +crtext foodamt
-		choice( "No thanks" )choice
+		choice( "No thanks" )choice back-esc
 		most-ahole if
 			charchoice( " robs the trader" )choice: trade-rifle-shell-rob
 		then
@@ -339,7 +339,7 @@ cyoa: trade-medical
 	($ Thegroup .. " finds a man claiming to be a travelling medicine salesman. He's carrying two suitcases of medical supplies." $) cyoa-text! 
 	medical-bought 15 < if
 		"He offers one medical item for each item of food." +crtext foodamt
-		choice( "No thanks" )choice
+		choice( "No thanks" )choice back-esc
 		most-ahole if
 			charchoice( " robs the trader" )choice: trade-medical-rob
 		then
@@ -428,7 +428,7 @@ cyoa: trade-groupheal
 	"Medical Attention" cyoa-title! picon!
 	($ Thegroup .. " finds a woman surrounded by medical equipment. She claims to be a skilled doctor!
 	She offers to provide health care in exchange for food." $) cyoa-text! basic-tone foodamt
-	choice( "Leave for now" )choice
+	choice( "Leave for now" )choice back-esc
 	trunk-food 6 < if
 		($ "There's not enough food to afford treatment." $) +cr +text
 	else
@@ -486,7 +486,7 @@ cyoa: trade-allammo
 	WELCOME TO AMMO EMPORIUM! EVERYTHING MUST GO!" pbold $) cyoa-text!
 	allammo-bought 15 < if
 		"It offers 5 bullets, 4 rifle ammo, and 3 shotgun shells per food item." +crtext foodamt
-		choice( "No thanks" )choice
+		choice( "No thanks" )choice back-esc
 		most-ahole if
 			charchoice( " robs the dog" )choice: trade-allammo-rob
 		then
@@ -524,6 +524,11 @@ cyoa-choice: trade-weapon-buy-rob
 	aholeREV trade-flee
 ;
 
+cyoa-choice: trade-weapon-buy-nodrop
+	"NO DROP, NO SALE" cyoa-title! picon
+	($ pname .. " refuses to part with this weapon! The trader is mildly irritated by her time being wasted." $) cyoa-text! badfx
+;
+
 : trade-weapon-buy-2
 	2 trunk-food+ goodfx
 	($ RAINBOW .. "WEAPON SOLD!" $) player .yellmsg
@@ -548,6 +553,9 @@ cyoa-choice: trade-weapon-buy-rob
 ;
 
 : .sell-weapon args( foodamt weapon )
+	<- weapon pchar .weapona@ = pchar .weapon_nodropa@ 0 > and if trade-weapon-buy-nodrop then;
+	<- weapon pchar .weaponb@ = pchar .weapon_nodropb@ 0 > and if trade-weapon-buy-nodrop then;
+	<- weapon pchar .weaponc@ = pchar .weapon_nodropc@ 0 > and if trade-weapon-buy-nodrop then;
 	haggler? if drop
 		<- foodamt <- foodamt hagglercalc
 	else drop
@@ -621,12 +629,16 @@ cyoa-choice: trade-weapon-buy-rob
 	WEAPON_GOLDSPEAR shove
 	WEAPON_WOODCLUB shove
 	WEAPON_SICKLE shove
+	WEAPON_DSHOTGUN shove
 	
-	WEAPON_DBSHOTTY shove
+	WEAPON_BEAGLE shove
+	WEAPON_JUANMINI shove
+	WEAPON_JUANBEAG shove
+	
 	WEAPON_LEVSHOTTY shove
 	WEAPON_M4 shove
-	WEAPON_BEAGLE shove
 	WEAPON_HSMG shove
+	WEAPON_PSMG shove
 	WEAPON_AASHOTTY shove
 	WEAPON_SEMIRIFLE shove
 	WEAPON_TEC shove
@@ -634,19 +646,14 @@ cyoa-choice: trade-weapon-buy-rob
 	
 	WEAPON_MILIPISTOL shove
 	WEAPON_SUPERTEC shove
-	WEAPON_BULLCARBINE shove
 	WEAPON_VSMG shove
-	WEAPON_LEVERDAWG shove
 	WEAPON_OBREZ shove
 	WEAPON_M60 shove
 	WEAPON_AWP shove
-	WEAPON_CUTLASSB shove
 	WEAPON_LEVERRIFLE shove
 	
-	WEAPON_SUPERSTICK shove
 	WEAPON_MEGATANA shove
-	WEAPON_SLEDGECUTTER shove
-	WEAPON_BATTLELOG shove
+	WEAPON_SLDGCUT shove
 	WEAPON_POOLSPEAR shove
 	
 	WEAPON_FUDERPOWER shove
@@ -659,8 +666,23 @@ cyoa-choice: trade-weapon-buy-rob
 	WEAPON_COMICALPISTOL shove
 	WEAPON_PANZERPOOT shove
 	
+	WEAPON_SPIKEDBAT shove
+	WEAPON_SUPERLEAF shove
+	WEAPON_ECHAINSAW shove
+	WEAPON_DRILL shove
+	WEAPON_NAILGUN shove
+	WEAPON_SUPERNAIL shove
+	WEAPON_PDSHOTTY shove
+	WEAPON_FLINTLOCK shove
+	WEAPON_KARAMBIT shove
+	WEAPON_CBKNIFE shove
+	WEAPON_BUTTERFLY shove
+	WEAPON_ENTRENCHER shove
+	WEAPON_TRENCHSHOV shove
+	WEAPON_STIELNADE shove
+	WEAPON_INCENDNADE shove
+	WEAPON_GASNADE shove
 constant WEAPON_LIST_SELLABLE
-
 : pchar-weapon-sell-check WEAPON_LIST_SELLABLE pchar-has-weapontype? ;
 
 // : trade-weapon-  WEAPON_ .sell-weapon ;
@@ -713,7 +735,7 @@ constant WEAPON_LIST_SELLABLE
 : trade-weapon-dragonslayer 20 WEAPON_DRAGONSLAYER .sell-weapon ;
 : trade-weapon-firelink 15 WEAPON_FIRELINK .sell-weapon ;
 : trade-weapon-knucks 1 WEAPON_KNUCKS .sell-weapon ;
-: trade-weapon-megaspikedbat 2 WEAPON_MEGASPIKEDBAT .sell-weapon ;
+: trade-weapon-megaspikedbat 3 WEAPON_MEGASPIKEDBAT .sell-weapon ;
 : trade-weapon-redrobot 4 WEAPON_REDROBOT .sell-weapon ;
 : trade-weapon-bluerobot 2 WEAPON_BLUEROBOT .sell-weapon ;
 : trade-weapon-halberd 7 WEAPON_HALBERD .sell-weapon ;
@@ -726,43 +748,58 @@ constant WEAPON_LIST_SELLABLE
 : trade-weapon-goldspear 20 WEAPON_GOLDSPEAR .sell-weapon ;
 : trade-weapon-woodclub 1 WEAPON_WOODCLUB .sell-weapon ;
 : trade-weapon-sickle 2 WEAPON_SICKLE .sell-weapon ;
+: trade-weapon-dshotgun 3 WEAPON_DSHOTGUN .sell-weapon ; // Probably worth 10 if it was in shops, but rare\\
 
-: trade-weapon-dbshotty 2 WEAPON_DBSHOTTY .sell-weapon ;
 : trade-weapon-levshotty 1 WEAPON_LEVSHOTTY .sell-weapon ;
-: trade-weapon-m4 7 WEAPON_M4 .sell-weapon ;
-: trade-weapon-beagle 2 WEAPON_BEAGLE .sell-weapon ;
+: trade-weapon-m4 8 WEAPON_M4 .sell-weapon ;
+: trade-weapon-beagle 3 WEAPON_BEAGLE .sell-weapon ;
 : trade-weapon-hsmg 4 WEAPON_HSMG .sell-weapon ;
-: trade-weapon-aashotty 10 WEAPON_AASHOTTY .sell-weapon ;
+: trade-weapon-psmg 7 WEAPON_PSMG .sell-weapon ;
+: trade-weapon-aashotty 16 WEAPON_AASHOTTY .sell-weapon ;
 : trade-weapon-semirifle 4 WEAPON_SEMIRIFLE .sell-weapon ;
 : trade-weapon-tec 5 WEAPON_TEC .sell-weapon ;
 : trade-weapon-pcarbine 5 WEAPON_PCARBINE .sell-weapon ;
 
 : trade-weapon-milipistol 2 WEAPON_MILIPISTOL .sell-weapon ;
-: trade-weapon-supertec 9 WEAPON_SUPERTEC .sell-weapon ;
-: trade-weapon-bullcarbine 5 WEAPON_BULLCARBINE .sell-weapon ;
-: trade-weapon-vsmg 4 WEAPON_VSMG .sell-weapon ;
-: trade-weapon-leverdawg 7 WEAPON_LEVERDAWG .sell-weapon ;
-: trade-weapon-obrez 3 WEAPON_OBREZ .sell-weapon ;
-: trade-weapon-m60 17 WEAPON_M60 .sell-weapon ;
-: trade-weapon-awp 8 WEAPON_AWP .sell-weapon ;
-: trade-weapon-cutlassb 4 WEAPON_CUTLASSB .sell-weapon ;
+: trade-weapon-supertec 11 WEAPON_SUPERTEC .sell-weapon ;
+: trade-weapon-vsmg 8 WEAPON_VSMG .sell-weapon ;
+: trade-weapon-obrez 2 WEAPON_OBREZ .sell-weapon ;
+: trade-weapon-m60 19 WEAPON_M60 .sell-weapon ;
+: trade-weapon-awp 9 WEAPON_AWP .sell-weapon ;
 
 : trade-weapon-leverrifle 3 WEAPON_LEVERRIFLE .sell-weapon ;
-: trade-weapon-superstick 1 WEAPON_SUPERSTICK .sell-weapon ;
-: trade-weapon-sledgecutter 7 WEAPON_SLEDGECUTTER .sell-weapon ;
-: trade-weapon-battlelog 9 WEAPON_BATTLELOG .sell-weapon ;
+: trade-weapon-sldgcut 7 WEAPON_SLDGCUT .sell-weapon ;
 : trade-weapon-poolspear 2 WEAPON_POOLSPEAR .sell-weapon ;
 : trade-weapon-megatana 5 WEAPON_MEGATANA .sell-weapon ;
 
-: trade-weapon-fuderpower 10 WEAPON_FUDERPOWER .sell-weapon ;
+: trade-weapon-fuderpower 16 WEAPON_FUDERPOWER .sell-weapon ;
 : trade-weapon-vlmg 15 WEAPON_VLMG .sell-weapon ;
 : trade-weapon-flaregun 1 WEAPON_FLAREGUN .sell-weapon ;
-: trade-weapon-doublelauncher 1 WEAPON_DOUBLELAUNCHER .sell-weapon ;
-: trade-weapon-flameshot 6 WEAPON_FLAMESHOT .sell-weapon ;
+: trade-weapon-doublelauncher 2 WEAPON_DOUBLELAUNCHER .sell-weapon ;
+: trade-weapon-flameshot 8 WEAPON_FLAMESHOT .sell-weapon ;
 : trade-weapon-quadlauncher 3 WEAPON_QUADLAUNCHER .sell-weapon ;
-: trade-weapon-quadlaser 1 WEAPON_QUADLASER .sell-weapon ;
+: trade-weapon-quadlaser 2 WEAPON_QUADLASER .sell-weapon ;
 : trade-weapon-comicalpistol 3 WEAPON_COMICALPISTOL .sell-weapon ;
 : trade-weapon-panzerpoot 1 WEAPON_PANZERPOOT .sell-weapon ;
+
+: trade-weapon-spikedbat 2 WEAPON_SPIKEDBAT .sell-weapon ;
+: trade-weapon-juanmini 5 WEAPON_JUANMINI .sell-weapon ;
+: trade-weapon-juanbeag 4 WEAPON_JUANBEAG .sell-weapon ;
+: trade-weapon-superleaf 7 WEAPON_SUPERLEAF .sell-weapon ;
+: trade-weapon-echainsaw 5 WEAPON_ECHAINSAW .sell-weapon ;
+: trade-weapon-drill 1 WEAPON_DRILL .sell-weapon ;
+: trade-weapon-nailgun 1 WEAPON_NAILGUN .sell-weapon ;
+: trade-weapon-supernail 3 WEAPON_SUPERNAIL .sell-weapon ;
+: trade-weapon-pdshotty 8 WEAPON_PDSHOTTY .sell-weapon ;
+: trade-weapon-flintlock 4 WEAPON_FLINTLOCK .sell-weapon ;
+: trade-weapon-karambit 7 WEAPON_KARAMBIT .sell-weapon ;
+: trade-weapon-cbknife 3 WEAPON_CBKNIFE .sell-weapon ;
+: trade-weapon-butterfly 4 WEAPON_BUTTERFLY .sell-weapon ;
+: trade-weapon-entrencher 2 WEAPON_ENTRENCHER .sell-weapon ;
+: trade-weapon-trenchshov 2 WEAPON_TRENCHSHOV .sell-weapon ;
+: trade-weapon-stielnade 1 WEAPON_STIELNADE .sell-weapon ;
+: trade-weapon-incendnade 1 WEAPON_INCENDNADE .sell-weapon ;
+: trade-weapon-gasnade 1 WEAPON_GASNADE .sell-weapon ;
 
 cyoa: trade-weapon-buy
 	"Weapons Bartering" cyoa-title!
@@ -771,7 +808,7 @@ cyoa: trade-weapon-buy
 		($ "I got food! I'm looking for some great weapons!
 		" pbold .. "She takes a quick look at what " .. pname .. " is carrying..." $) +crtext
 	pchar-weapon-sell-check if
-		choice( "Give nothing right now" )choice
+		choice( "Give nothing right now" )choice back-esc
 	else 
 		"She doesn't see anything that she wants!" +crtext
 		WEAPON_LIST_SELLABLE roadtrip-has-weapontype? if
@@ -782,7 +819,7 @@ cyoa: trade-weapon-buy
 				"sitting in the car's trunk."
 			then +text
 		then
-		choice( "Come back later" )choice
+		choice( "Come back later" )choice back-esc
 	then
 	pchar ahole? if
 		pchar charchoice( " robs her" )choice: trade-weapon-buy-rob
@@ -822,7 +859,7 @@ cyoa: trade-weapon-buy
 	WEAPON_WINDSTAR pchar-weapon? if choice( "Sell Windstar - 3 food" )choice: trade-weapon-windstar then
 	WEAPON_DOLT pchar-weapon? if choice( "Sell Dolt 45 - 1 food" )choice: trade-weapon-dolt then
 	WEAPON_RIFLE pchar-weapon? if choice( "Sell Cowboy Rifle - 1 food" )choice: trade-weapon-cowboy then
-	WEAPON_SHOTGUN pchar-weapon? if choice( "Sell Pump Action Shotgun - 1 food" )choice: trade-weapon-shotgun then
+	WEAPON_SHOTGUN pchar-weapon? if choice( "Sell Shotgun - 1 food" )choice: trade-weapon-shotgun then
 	WEAPON_MEDIEVAL pchar-weapon? if choice( "Sell Medieval Axe - 5 food" )choice: trade-weapon-medieval then
 	WEAPON_GUITAR pchar-weapon? if choice( "Sell Electric Guitar - 2 food" )choice: trade-weapon-guitar then
 	WEAPON_FIRE pchar-weapon? if choice( "Sell Fire Axe - 1 food" )choice: trade-weapon-fireaxe then
@@ -840,7 +877,7 @@ cyoa: trade-weapon-buy
 	WEAPON_DRAGONSLAYER pchar-weapon? if choice( "Sell Dragonslayer - 20 food" )choice: trade-weapon-dragonslayer then
 	WEAPON_FIRELINK pchar-weapon? if choice( "Sell Firelunk Greatsword - 15 food" )choice: trade-weapon-firelink then
 	WEAPON_KNUCKS pchar-weapon? if choice( "Sell Brass Knucks - 1 food" )choice: trade-weapon-knucks then
-	WEAPON_MEGASPIKEDBAT pchar-weapon? if choice( "Sell the Whammer - 2 food" )choice: trade-weapon-megaspikedbat then
+	WEAPON_MEGASPIKEDBAT pchar-weapon? if choice( "Sell the Whammer - 3 food" )choice: trade-weapon-megaspikedbat then
 	WEAPON_REDROBOT pchar-weapon? if choice( "Sell Red Robot - 4 food" )choice: trade-weapon-redrobot then
 	WEAPON_BLUEROBOT pchar-weapon? if choice( "Sell Blue Robot - 2 food" )choice: trade-weapon-bluerobot then
 	WEAPON_HALBERD pchar-weapon? if choice( "Sell Halberd - 7 food" )choice: trade-weapon-halberd then
@@ -853,64 +890,83 @@ cyoa: trade-weapon-buy
 	WEAPON_GOLDSPEAR pchar-weapon? if choice( "Sell Golden Spear - 20 food" )choice: trade-weapon-goldspear then
 	WEAPON_WOODCLUB pchar-weapon? if choice( "Sell Wooden Club - 1 food" )choice: trade-weapon-woodclub then
 	WEAPON_SICKLE pchar-weapon? if choice( "Sell Sickle - 2 food" )choice: trade-weapon-sickle then
-	WEAPON_BLOWER pchar-weapon? if choice( "Sell Weed Blower - 2 food" )choice: trade-weapon-blower then	
+	WEAPON_BLOWER pchar-weapon? if choice( "Sell Weed Blower - 2 food" )choice: trade-weapon-blower then
+	WEAPON_DSHOTGUN pchar-weapon? if choice( "Sell Double Barrel - 3 food" )choice: trade-weapon-dshotgun then	
 	
 	WEAPON_BEAGLE pchar-weapon? if
-		choice( "Sell Beagle 44 - 2 food" )choice: trade-weapon-beagle
+		choice( "Sell Beagle 44 - 3 food" )choice: trade-weapon-beagle
+	then
+	WEAPON_JUANMINI pchar-weapon? if
+		choice( "Sell Beagle 50 - 5 food" )choice: trade-weapon-juanmini
+	then
+	WEAPON_JUANBEAG pchar-weapon? if
+		choice( "Sell Beagle 500 - 4 food" )choice: trade-weapon-juanbeag
 	then
 	WEAPON_SEMIRIFLE pchar-weapon? if
-		choice( "Sell Antique Rifle - 4 food" )choice: trade-weapon-semirifle
-	then
-	WEAPON_DBSHOTTY pchar-weapon? if
-		choice( "Sell Double-barreled Shotgun - 2 food" )choice: trade-weapon-dbshotty
+		choice( "Sell Semi-automatic Rifle - 4 food" )choice: trade-weapon-semirifle
 	then
 	WEAPON_LEVSHOTTY pchar-weapon? if
 		choice( "Sell Lever Action Shotgun - 1 food" )choice: trade-weapon-levshotty
 	then
 	WEAPON_M4 pchar-weapon? if
-		choice( "Sell Carbine Rifle - 9 food" )choice: trade-weapon-m4
+		choice( "Sell Carbine Rifle - 8 food" )choice: trade-weapon-m4
 	then
 	WEAPON_HSMG pchar-weapon? if
-		choice( "Sell Heavy SMG - 4 food" )choice: trade-weapon-hsmg
+		choice( "Sell Heavy Sub-machinegun - 4 food" )choice: trade-weapon-hsmg
+	then
+	WEAPON_PSMG pchar-weapon? if
+		choice( "Sell Silenced Sub-machinegun - 7 food" )choice: trade-weapon-psmg
 	then
 	WEAPON_AASHOTTY pchar-weapon? if
-		choice( "Sell Full-auto Shotgun - 12 food" )choice: trade-weapon-aashotty
+		choice( "Sell Full-auto Shotgun - 16 food" )choice: trade-weapon-aashotty
 	then	
 	WEAPON_TEC pchar-weapon? if
 		choice( "Sell Machine Pistol - 5 food" )choice: trade-weapon-tec
 	then
 	WEAPON_PCARBINE pchar-weapon? if
-		choice( "Sell Police Carbine - 6 food" )choice: trade-weapon-pcarbine
+		choice( "Sell Police Carbine - 5 food" )choice: trade-weapon-pcarbine
 	then
 	
-	WEAPON_MILIPISTOL pchar-weapon? if choice( "Sell Military Pistol - 2 food" )choice: trade-weapon-milipistol then
-	WEAPON_SUPERTEC pchar-weapon? if choice( "Sell Super Machine Pistol - 9 food" )choice: trade-weapon-supertec then
-	WEAPON_BULLCARBINE pchar-weapon? if choice( "Sell Bullpup Carbine - 5 food" )choice: trade-weapon-bullcarbine then
-	WEAPON_VSMG pchar-weapon? if choice( "Sell Vintage SMG - 4 food" )choice: trade-weapon-vsmg then
-	WEAPON_LEVERDAWG pchar-weapon? if choice( "Sell LEVERDAWG - 7 food" )choice: trade-weapon-leverdawg then
-	WEAPON_OBREZ pchar-weapon? if choice( "Sell Obrez - 3 food" )choice: trade-weapon-obrez then
-	WEAPON_M60 pchar-weapon? if choice( "Sell Heavy Machine Gun - 16 food" )choice: trade-weapon-m60 then
+	WEAPON_MILIPISTOL pchar-weapon? if choice( "Sell Armor-piercing Pistol - 2 food" )choice: trade-weapon-milipistol then
+	WEAPON_SUPERTEC pchar-weapon? if choice( "Sell Super Machine Pistol - 11 food" )choice: trade-weapon-supertec then
+	WEAPON_VSMG pchar-weapon? if choice( "Sell Timmy Gun - 8 food" )choice: trade-weapon-vsmg then
+	WEAPON_OBREZ pchar-weapon? if choice( "Sell Sawed-off Rifle - 2 food" )choice: trade-weapon-obrez then
+	WEAPON_M60 pchar-weapon? if choice( "Sell Heavy Machine Gun - 19 food" )choice: trade-weapon-m60 then
 	WEAPON_AWP pchar-weapon? if choice( "Sell Sniper Rifle - 9 food" )choice: trade-weapon-awp then
-	WEAPON_CUTLASSB pchar-weapon? if choice( "Sell Cutlass - 4 food" )choice: trade-weapon-cutlassb then
 	
 	WEAPON_LEVERRIFLE pchar-weapon? if choice( "Sell Lever Action Rifle - 3 food" )choice: trade-weapon-leverrifle then
-	WEAPON_SUPERSTICK pchar-weapon? if choice( "Sell Superstick - 3 food" )choice: trade-weapon-superstick then
-	WEAPON_SLEDGECUTTER pchar-weapon? if choice( "Sell Sledgecutter - 9 food" )choice: trade-weapon-sledgecutter then
-	WEAPON_BATTLELOG pchar-weapon? if choice( "Sell Battle Log - 9 food" )choice: trade-weapon-battlelog then
+	WEAPON_SLDGCUT pchar-weapon? if choice( "Sell Sledgecutter - 7 food" )choice: trade-weapon-sldgcut then
 	WEAPON_POOLSPEAR pchar-weapon? if choice( "Sell Poolcue Spear - 2 food" )choice: trade-weapon-poolspear then
 	WEAPON_MEGATANA pchar-weapon? if choice( "Sell Megatana - 5 food" )choice: trade-weapon-megatana then
 	
-	WEAPON_FUDERPOWER pchar-weapon? if choice( "Sell DINNER LUNCHER - 10 food" )choice: trade-weapon-fuderpower then
+	WEAPON_FUDERPOWER pchar-weapon? if choice( "Sell DINNER LUNCHER - 16 food" )choice: trade-weapon-fuderpower then
 
-	WEAPON_VLMG pchar-weapon? if choice( "Sell Vintage Machine Gun - 15 food" )choice: trade-weapon-vlmg then
+	WEAPON_VLMG pchar-weapon? if choice( "Sell Vintage Light Machine Gun - 15 food" )choice: trade-weapon-vlmg then
 	WEAPON_FLAREGUN pchar-weapon? if choice( "Sell Flare Gun - 1 food" )choice: trade-weapon-flaregun then
-	WEAPON_DOUBLELAUNCHER pchar-weapon? if choice( "Sell Portable Grenade Launcher - 1 food" )choice: trade-weapon-doublelauncher then
-	WEAPON_FLAMESHOT pchar-weapon? if choice( "Sell Flame Shotgun - 6 food" )choice: trade-weapon-flameshot then
-	WEAPON_QUADLAUNCHER pchar-weapon? if choice( "Sell Quad Rocket Launcher - 3 food" )choice: trade-weapon-quadlauncher then
-	WEAPON_QUADLASER pchar-weapon? if choice( "Sell Quad Laser - 1 food" )choice: trade-weapon-quadlaser then
+	WEAPON_DOUBLELAUNCHER pchar-weapon? if choice( "Sell Portable Grenade Launcher - 2 food" )choice: trade-weapon-doublelauncher then
+	WEAPON_FLAMESHOT pchar-weapon? if choice( "Sell Flame Shotgun - 8 food" )choice: trade-weapon-flameshot then
+	WEAPON_QUADLAUNCHER pchar-weapon? if choice( "Sell Anti-tank Rocket Launcher - 3 food" )choice: trade-weapon-quadlauncher then
+	WEAPON_QUADLASER pchar-weapon? if choice( "Sell Quad Laser - 3 food" )choice: trade-weapon-quadlaser then
 	WEAPON_COMICALPISTOL pchar-weapon? if choice( "Sell Comically Oversized Pistol - 3 food" )choice: trade-weapon-comicalpistol then
 	WEAPON_PANZERPOOT pchar-weapon? if choice( "Sell PANZERPOOT - 1 food" )choice: trade-weapon-panzerpoot then
 	
+	
+	WEAPON_SPIKEDBAT pchar-weapon? if choice( "Sell Spiked Bat - 2 food" )choice: trade-weapon-spikedbat then
+	WEAPON_SUPERLEAF pchar-weapon? if choice( "Sell Super Leaf Blower - 7 food" )choice: trade-weapon-superleaf then
+	WEAPON_ECHAINSAW pchar-weapon? if choice( "Sell Electric Chainsaw - 5 food" )choice: trade-weapon-echainsaw then
+	WEAPON_DRILL pchar-weapon? if choice( "Sell Drill - 1 food" )choice: trade-weapon-drill then
+	WEAPON_NAILGUN pchar-weapon? if choice( "Sell Nailgun - 1 food" )choice: trade-weapon-nailgun then
+	WEAPON_SUPERNAIL pchar-weapon? if choice( "Sell Super Machinegun - 3 food" )choice: trade-weapon-supernail then
+	WEAPON_PDSHOTTY pchar-weapon? if choice( "Sell Combat Shotgun - 8 food" )choice: trade-weapon-pdshotty then
+	WEAPON_FLINTLOCK pchar-weapon? if choice( "Sell Flintlock - 4 food" )choice: trade-weapon-flintlock then
+	WEAPON_KARAMBIT pchar-weapon? if choice( "Sell Karambit - 7 food" )choice: trade-weapon-karambit then
+	WEAPON_CBKNIFE pchar-weapon? if choice( "Sell Combat Knife - 3 food" )choice: trade-weapon-cbknife then
+	WEAPON_BUTTERFLY pchar-weapon? if choice( "Sell Butterfly Knife - 4 food" )choice: trade-weapon-butterfly then
+	WEAPON_ENTRENCHER pchar-weapon? if choice( "Sell Entrenching Tool - 2 food" )choice: trade-weapon-entrencher then
+	WEAPON_TRENCHSHOV pchar-weapon? if choice( "Sell Trench Shovel - 2 food" )choice: trade-weapon-trenchshov then
+	WEAPON_STIELNADE pchar-weapon? if choice( "Sell Stick Grenade - 1 food" )choice: trade-weapon-stielnade then
+	WEAPON_INCENDNADE pchar-weapon? if choice( "Sell Incendiary Grenade - 1 food" )choice: trade-weapon-incendnade then
+	WEAPON_GASNADE pchar-weapon? if choice( "Sell Gas Grenade - 1 food" )choice: trade-weapon-gasnade then
 ;
 
 } }

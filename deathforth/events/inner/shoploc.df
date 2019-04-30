@@ -101,7 +101,7 @@ map{ roomgen{
 	
 	: pooltable
 		spawn special_objects32_base_id 0x 26 + lt .spriteid!
-		30 health! bbox immovable as-wood
+		30 health! bbox swolebolt as-wood
 		1 2 rnd for poolcue .drift next
 		10 %chance if poolspear .drift then
 	;	
@@ -157,7 +157,8 @@ location: gunshop
 		3 carts-scatter
 		3 for LLammobox next
 		90 %chance if pistol .scatter 10 15 rnd sbullet then
-		25 %chance if shotgun .scatter pistol .scatter then
+		50 %chance if hevrandna .scatter 10 15 rnd sbullet then
+		25 %chance if shotrandna .scatter pistol .scatter then
 		50 %chance if LLammobox then
 		10 %chance if LLammobox then
 		30 %chance if 1 4 rnd case
@@ -242,19 +243,21 @@ location: hardwareshop
 		3 6 rnd for skelscat next
 		3 carts-scatter
 		2 for 
-		1 6 rnd case
+		1 7 rnd case
 			1 of wrench .scatter endof
 			2 of 90 %chance if sledge else megamaul then .scatter endof
 			3 of screwdriver .scatter endof
 			4 of clawhammer .scatter endof
 			5 of ballpeen .scatter endof
 			6 of mallet .scatter endof
+			7 of boxcutter .scatter endof
 		endcase 
 		next
 		30 %chance if nail .scatter then
 		3 6 rnd for 2x4 .scatter next
 		20 %chance if pitchfork .scatter then
-		20 %chance if shovel .scatter then
+		10 %chance if shovel .scatter then
+		10 %chance if entrencher .scatter then
 		15 %chance if pickaxe .scatter then
 		20 %chance if metal .scatter then
 		60 %chance if 20 40 rnd sgas then 
@@ -265,6 +268,9 @@ location: hardwareshop
 		40 %chance if blower .scatter then
 		5 %chance if blowtorch scatter then
 		15 %chance if branchtrim .scatter then
+		10 %chance if drill scatter then
+		10 %chance if nailgun scatter then
+		30 %chance if 1 2 rnd for roadflare .scatter next then
 	;
 
 		room-choice: shop
@@ -283,17 +289,21 @@ location: campingshop
 		2 4 rnd for skelscat next
 		2 carts-scatter
 		1 2 rnd sfood
-		1 5 rnd case
+		1 7 rnd case
 			1 of hatchet .scatter endof
 			2 of frying .scatter hatchet .scatter endof
 			3 of machete2 .scatter endof
 			4 of huntcowboy .scatter 15 srifle endof
 			5 of shotrandna .scatter 8 sshot endof 
+			6 of bow scatter endof
+			7 of entrencher .scatter endof
 		endcase
 		50 %chance if machete1 .scatter then
 		fishing .scatter
 		5 %chance if blowtorch scatter then
 		20 %chance if 20 50 rnd sgas then
+		50 %chance if roadflare .scatter then
+		30 %chance if flashlight .scatter then
 	;
 
 		room-choice: shop
@@ -331,7 +341,7 @@ location: jockshop
 
 	: jockweapons
 		for 
-		1 7 rnd case
+		1 8 rnd case
 			1 of baseball .scatter endof
 			2 of cricket .scatter endof
 			3 of golf .scatter endof
@@ -339,6 +349,7 @@ location: jockshop
 			5 of 90 %chance if hockey else xtreme then .scatter endof 
 			6 of tennis .scatter endof
 			7 of paddle .scatter endof
+			8 of football .scatter endof
 		endcase
 		next
 	;
@@ -351,6 +362,7 @@ location: jockshop
 		60 %chance if 
 			30 %chance if 50 else 30 then airhorn .item.charges! lt .scatter
 		then
+		10 %chance if bow scatter then
 	;
 
 		room-choice: shop

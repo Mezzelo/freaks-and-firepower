@@ -18,16 +18,37 @@ locdef{
 	
 	: clownloot
 		10 20 rnd for skelscat next
-		40 %chance if sledgecutter else      
-			50 %chance if megatana else zwei then
+		// 50 %chance if
+		// 	40 %chance if 
+		// 		sldgcut 
+		// 	else      
+		// 		50 %chance if megatana else zwei then
+		// 	then
+		// else
+			40 %chance if 
+				30 %chance if megatana else knight then
+			else      
+				50 %chance if claymore else medieval then
+			then
+		// then 
+		.scatter
+		40 %chance if 
+			40 50 rnd srifle 
+			80 %chance if arrandna else awp then 
+		else      
+			50 %chance if 
+				25 30 rnd sshot asrandna
+			else 
+				45 60 rnd sbullet 
+				10 %chance if 
+					vlmg 
+				else 
+					tec
+				then 
+			then
 		then .scatter
-		40 %chance if 40 50 rnd srifle 80 %chance if arrandna else awp then else      
-			50 %chance if 25 30 rnd sshot asrandna else 45 60 rnd sbullet 50 %chance if vlmg else supertec then then
-		then .scatter
-		6 8 rnd for 
-			70 %chance if flashbang else      
-				60 %chance if grenade else incendnade then
-			then .scatter 
+		3 4 rnd for 
+			LLthrownoskel
 		next
 	;
 	

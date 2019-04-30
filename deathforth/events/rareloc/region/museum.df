@@ -170,58 +170,39 @@ MUSEUMROOMS $parse-rooms
 					50 %chance if
 						2 for truekatana .scatter next
 					else
-						megatana .drift
+						megatana .scatter
 					then
 				endof
 				1 of
-					superrand .drift 
+					superrand
 					2 for shotrandna .scatter huntcowboy .scatter pistol .scatter next
-					hevrandna .scatter snubnose .scatter 
+					hevrandna .scatter hevrandna .scatter 
 				endof
-				2 of 
-					2 for gauntlet .scatter next
-					6 8 rnd for
-						90 %chance if
-							hatchet .drift
-						else
-							morning .drift
-						then					
-					next
-					33 %chance if
-						halberd .drift
-					else
-						50 %chance if
-							bardiche .drift
-						else
-							medieval .drift
-						then
-					then
-				endof
-				3 of 6 sfood
-					85 %chance if
-						10 16 rnd sfood
-					else
-						fuderpower .drift 
-					then
+				2 of 2 for gauntlet .scatter next 8 10 rnd for hatchet .scatter next medieval .scatter endof
+				3 of
+					6 sfood
+					2 5 rnd sfood
+					fuderpower .scatter 
 				endof
 				4 of
-					vlmg .drift
-					vsmg .drift
-					red9 .drift
-					panzerpoot
-					2 for snubnose .scatter leverrifle .scatter dolt .scatter next
+					vlmg .scatter
+					flintlock .scatter
+					leverrifle .scatter
+					2 for trenchshov .scatter stielnade .scatter next
+					panzerpoot scatter
 				endof
 				5 of
-					flamethrower .drift
-					5 for molotov .scatter next
-					2 for flaregun blowtorch incendnade .scatter hotpoker .scatter next
+					flameshot .scatter
+					3 for molotov .scatter next
+					2 for flaregun scatter blowtorch incendnade .scatter hotpoker .scatter next
 				endof
 				6 of
-					quadlauncher
-					doublelauncher
-					panzerpoot
-					5 for pipebomb .scatter next
-					3 for grenade .scatter next
+					quadlauncher scatter
+					doublelauncher scatter
+					panzerpoot scatter
+					3 for pipebomb .scatter next
+					2 for grenade .scatter next
+					3 for stielnade .scatter next
 				endof
 			endcase
 		;

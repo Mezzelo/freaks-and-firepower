@@ -61,28 +61,30 @@ map{ roomgen{
 	75 %chance if skelscat then
 	20 %chance if nightstick .scatter then
 	40 %chance if shiv .drift then
+	5 %chance if drill scatter then
 	1 6 rnd case
-		1 of 90 %chance if snubnose .drift 12 LOOT_BULLET else autoshot .drift 15 LOOT_SHOTGUN_SHELL then spawnloot drift endof
+		1 of 90 %chance if hevrandna .drift 12 LOOT_BULLET else asrandna .drift 15 LOOT_SHOTGUN_SHELL then spawnloot drift endof
 		2 of 2 LOOT_MEDICAL spawnloot drift endof
-		3 of 5 for flashbang .drift next endof
+		3 of 50 %chance if 5 for flashbang .drift next else 3 for gasnade .drift next then endof
 		4 of otaku .drift endof
 		5 of knucks .drift endof
-		6 of 90 %chance if shotrandna .drift 8 LOOT_SHOTGUN_SHELL else pcarbine .drift 25 LOOT_RIFLE_SHELL then spawnloot drift endof
+		6 of 70 %chance if shotrandna .drift 8 LOOT_SHOTGUN_SHELL else pcarbine .drift 25 LOOT_RIFLE_SHELL then spawnloot drift endof  
 	endcase
 ;
 
 : evidencelootHQ
 	75 %chance if skelscat then
 	15 %chance if nightstick .scatter then
+	10 %chance if drill scatter then
 	40 %chance if shiv .drift then
 	1 7 rnd case
-		1 of 30 %chance if snubnose .drift 12 LOOT_BULLET else asrandna .drift 15 LOOT_SHOTGUN_SHELL then spawnloot drift endof
-		2 of doublelauncher endof
-		3 of 8 for flashbang .drift next endof
+		1 of 30 %chance if hevrandna .drift 12 LOOT_BULLET else asrandna .drift 15 LOOT_SHOTGUN_SHELL then spawnloot drift endof
+		2 of doublelauncher drift endof
+		3 of 50 %chance if 8 for flashbang .drift next else 5 for gasnade .drift next then endof
 		4 of 50 %chance if shotrandna .drift 8 LOOT_SHOTGUN_SHELL else smgrandna .drift 30 LOOT_BULLET then spawnloot drift endof
 		5 of 70 %chance if smgrandna .drift 30 LOOT_BULLET else pcarbine .drift 25 LOOT_RIFLE_SHELL then spawnloot drift endof
 		6 of knucks .drift endof
-		7 of awp .drift endof
+		7 of 50 %chance if shotrandna .drift else asrandna .drift then endof
 	endcase
 ;
 

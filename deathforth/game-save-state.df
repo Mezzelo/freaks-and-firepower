@@ -42,7 +42,8 @@ filesave{
 	
   regiondef{
 	' rare-lot-deck save-val
-	' trader-list save-val
+	' trader-list-weapon save-val
+	' trader-list-util save-val
 	' trader-list-rare save-val
 	' trader-draw-pick save-val
 	' dochead-pick-stack-base save-val
@@ -121,8 +122,6 @@ filesave{
 	' mason-curse save-val
 	' tlb-camped save-val
 	' gator-ate-key save-val
-	
-	' phil-countdown save-val
 	
 	' loc-pick-stack save-val
 	' loc-pick-rare save-val

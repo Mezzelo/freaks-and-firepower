@@ -60,10 +60,12 @@ location: burninghouse
 			25 %chance if fire .scatter then
 			25 %chance if blowtorch scatter then
 			10 %chance if hotpoker .scatter then
-			40 %chance if flaregun then
-			99 %chance if 
-				99 %chance if
-					3 for flameshot .scatter next 15 30 rnd sshot
+			30 %chance if flaregun scatter then
+			20 %chance if incendscat then
+			25 %chance if rflarescat then
+			70 %chance if 
+				50 %chance if
+					2 for flameshot .scatter next 15 30 rnd sshot
 				else
 					flamethrower .scatter 35 50 rnd sgas
 				then
@@ -75,15 +77,23 @@ location: burninghouse
 		: burnhouseloot
 			25 %chance if fire .scatter then
 			25 %chance if blowtorch scatter then
-			80 %chance if flaregun then
+			20 %chance if flaregun scatter then
 			70 %chance if
-				1 3 rnd for molscat next
-				25 50 rnd sgas
+				60 %chance if
+					1 3 rnd for molscat next
+					25 50 rnd sgas
+				else
+					60 %chance if
+						1 2 rnd for rflarescat next
+					else
+						1 2 rnd for incendscat next
+					then
+				then
 			else
 				80 %chance if
 					hotpoker .scatter 3 6 rnd for molscat next
 				else
-					50 %chance if
+					45 %chance if
 						2 for flameshot .scatter next 15 30 rnd sshot
 					else
 						flamethrower .scatter 35 50 rnd sgas

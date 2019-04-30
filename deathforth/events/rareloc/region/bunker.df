@@ -249,14 +249,14 @@ BUNKERROOMS $parse-rooms
 	: bunkerloot4 24 dbullet snubnose .drift ;
 	: bunkerloot5 30 drifle srrandna .drift ;
 	: bunkerloot6 30 drifle huntcowboy .drift ;
-	: bunkerloot7 panzerpoot ;
+	: bunkerloot7 panzerpoot drift ;
 
 	: bunkerlootm1 50 dbullet smgrandna .drift ;
 	: bunkerlootm2 50 drifle arrandna .drift ;
 	: bunkerlootm3 30 dshot asrandna .drift ;
 	: bunkerlootm4 20 dshot slug .drift ;
-	: bunkerlootm5 doublelauncher ;
-	: bunkerlootm6 quadlauncher ;
+	: bunkerlootm5 doublelauncher drift ;
+	: bunkerlootm6 quadlauncher drift ;
 	
 	: bunkerloot
 		0 stack
@@ -266,7 +266,6 @@ BUNKERROOMS $parse-rooms
 			' bunkerloot4 shove
 			' bunkerloot5 shove
 			' bunkerloot6 shove
-			' bunkerloot7 shove
 		shuffles pops execute drop
 	;
 	
